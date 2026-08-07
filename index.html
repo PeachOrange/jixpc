@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="极X星球回收店主经营体系后台管理PC交互原型">
+  <title>极X星球｜后台管理 PC 原型</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="admin-app" id="admin-app">
+    <aside class="side-nav">
+      <a class="admin-brand" href="#" data-module="dashboard"><span class="brand-mark">X</span><span><strong>极X星球</strong><small>运营管理后台</small></span></a>
+      <p class="nav-label">业务菜单</p>
+      <button type="button" class="primary-nav active" data-menu-group="owner-management" aria-expanded="true" aria-controls="secondary-navigation"><i>店</i><span>店主管理</span><b>⌃</b></button>
+      <nav id="secondary-navigation" data-admin-nav aria-label="店主管理二级菜单"></nav>
+      <div class="nav-footer"><span>需求评审原型</span><strong>版本 1.0</strong><small>P0核心能力 · P1完整后台</small></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <label class="global-search"><span>搜</span><input type="search" id="global-search" placeholder="搜索店主、店铺、规则或日志"></label>
+        <div class="topbar-actions">
+          <label class="upgrade-switch"><span>自动升级总开关</span><input type="checkbox" id="auto-upgrade" checked><i></i></label>
+          <button class="notification" type="button" aria-label="通知">通<em>3</em></button>
+          <div class="admin-profile"><span>运营</span><div><strong>陈运营</strong><small>产品运营</small></div></div>
+        </div>
+      </header>
+      <div class="workspace-content" id="admin-content" aria-live="polite"></div>
+    </main>
+
+    <aside class="detail-drawer" id="detail-drawer" aria-label="编辑抽屉" aria-hidden="true">
+      <div class="drawer-header"><div><span id="drawer-kicker">规则配置</span><h2 id="drawer-title">编辑等级规则</h2></div><button type="button" data-close-drawer aria-label="关闭">×</button></div>
+      <div class="drawer-body" id="drawer-body"></div>
+      <div class="drawer-footer" id="drawer-footer"></div>
+    </aside>
+    <button class="drawer-backdrop" id="drawer-backdrop" type="button" data-close-drawer aria-label="关闭抽屉"></button>
+
+    <div class="modal-backdrop" id="publish-modal" hidden>
+      <section class="publish-modal" role="dialog" aria-modal="true" aria-labelledby="publish-title">
+        <div class="modal-head"><div><span>发布确认</span><h2 id="publish-title">等级规则版本影响预览</h2></div><button type="button" data-close-publish aria-label="关闭">×</button></div>
+        <div id="publish-content"></div>
+        <div class="modal-actions"><button type="button" data-close-publish>返回修改</button><button type="button" class="primary-button" data-confirm-publish>确认发布</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="benefit-picker-modal" hidden>
+      <section class="publish-modal selection-modal" role="dialog" aria-modal="true" aria-labelledby="benefit-picker-title">
+        <div class="modal-head"><div><span>等级权益配置</span><h2 id="benefit-picker-title">选择增量权益</h2></div><button type="button" data-close-benefit-picker aria-label="关闭">×</button></div>
+        <div class="selection-content"><label class="modal-search"><span>搜</span><input type="search" id="benefit-picker-search" placeholder="搜索权益名称或类别"></label><div class="benefit-options" id="benefit-picker-list"></div></div>
+        <div class="modal-actions"><span class="selection-count" id="benefit-picker-count">已选择 0 项</span><button type="button" data-close-benefit-picker>取消</button><button type="button" class="primary-button" data-confirm-benefit-picker>确认添加</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="confirm-modal" hidden>
+      <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="confirm-icon">!</div><h2 id="confirm-title">确认操作</h2><p id="confirm-message"></p>
+        <div class="modal-actions"><button type="button" data-close-confirm>取消</button><button type="button" class="danger-button" id="confirm-action">确认</button></div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="info-modal" hidden>
+      <section class="publish-modal" role="dialog" aria-modal="true" aria-labelledby="info-title">
+        <div class="modal-head"><div><span id="info-kicker">详情</span><h2 id="info-title">查看详情</h2></div><button type="button" data-close-info aria-label="关闭">×</button></div>
+        <div id="info-content"></div>
+        <div class="modal-actions"><button type="button" class="primary-button" data-close-info>关闭</button></div>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="model.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
