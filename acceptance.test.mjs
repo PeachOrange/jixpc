@@ -19,11 +19,31 @@ function adminModel() {
   return loadGlobalScript(`${root}/model.js`, 'AdminModel');
 }
 
+function sourceSection(source, startMarker, endMarker) {
+  const start = source.indexOf(startMarker);
+  const end = source.indexOf(endMarker, start + startMarker.length);
+  assert.notEqual(start, -1, `缺少起始标识：${startMarker}`);
+  assert.notEqual(end, -1, `缺少结束标识：${endMarker}`);
+  return source.slice(start, end);
+}
+
 test('后台只有店主管理一级菜单并合并六个二级菜单', () => {
   const menu = JSON.parse(JSON.stringify(adminModel().getAdminMenu()));
   assert.equal(menu.length, 1);
   assert.equal(menu[0].name, '店主管理');
   assert.deepEqual(menu[0].children.map((item) => item.name), ['经营总览', '店主与开店', '等级与权益', '状态管理', '内容管理', '任务中心']);
+});
+
+test('后台升级指标统一使用店铺客户店铺收益和团队店主', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const drawer = sourceSection(source, 'function renderLevelDrawer()', 'function openLevelDrawer(');
+  for (const marker of ['店铺客户', '店铺收益', '团队店主']) {
+    assert.ok(drawer.includes(marker), `后台升级指标缺少：${marker}`);
+  }
+  for (const marker of ['有效成交客户', '团队有效订单', '累计已结算店铺收益']) {
+    assert.equal(drawer.includes(marker), false, `后台升级指标仍保留旧口径：${marker}`);
+  }
+  assert.ok(drawer.includes("const units = ['人', '元', '人']"), '后台升级指标单位顺序错误');
 });
 
 test('开店登记重复提交更新同一记录', () => {
