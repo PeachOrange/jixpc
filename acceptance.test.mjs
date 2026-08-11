@@ -73,11 +73,62 @@ test('后台经营总览使用实时等级分布和通栏双列新布局', () =>
   assert.match(styles, /\.dashboard-secondary\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/, '下方分析需要双列布局');
 });
 
-test('后台只有店主管理一级菜单并合并六个二级菜单', () => {
+test('后台只保留三个店主管理二级菜单', () => {
   const menu = JSON.parse(JSON.stringify(adminModel().getAdminMenu()));
   assert.equal(menu.length, 1);
   assert.equal(menu[0].name, '店主管理');
-  assert.deepEqual(menu[0].children.map((item) => item.name), ['经营总览', '店主与开店', '等级与权益', '状态管理', '内容管理', '任务中心']);
+  assert.deepEqual(menu[0].children.map((item) => item.name), ['经营总览', '店主与开店', '等级与权益']);
+});
+
+test('后台经营总览与店主开店页隐藏已确认入口', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const styles = readFileSync(`${root}/styles.css`, 'utf8');
+  const tabs = sourceSection(source, 'const sectionTabs = {', 'const levels = [');
+  const dashboard = sourceSection(source, 'function renderDashboard()', 'function renderLevels()');
+  const agents = sourceSection(source, 'function renderAgents()', 'function renderRegistrations()');
+  const registrations = sourceSection(source, 'function renderRegistrations()', 'function renderStores()');
+  assert.equal(dashboard.includes('下载经营明细'), false, '经营总览仍展示下载入口');
+  assert.equal(tabs.includes("{ id: 'stores', name: '店铺资料' }"), false, '店主与开店仍展示店铺资料页签');
+  for (const marker of ['下载当前明细', '<span>状态</span>', '${pill(row.status)}']) assert.equal(agents.includes(marker), false, `店主列表仍展示：${marker}`);
+  for (const marker of ['导出登记', '<span>风险提示</span>', '同手机号多账号', '${row.risk ?']) assert.equal(registrations.includes(marker), false, `开店登记仍展示：${marker}`);
+  assert.ok(styles.includes('.owner-table { grid-template-columns: 1.45fr .72fr 1fr .82fr .72fr .55fr;'), '店主列表未调整为六列');
+  assert.ok(styles.includes('.registration-summary { grid-template-columns: repeat(3, 1fr);'), '登记统计区未调整为三列');
+});
+
+test('后台店主详情仅保留必要信息与操作', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const drawer = sourceSection(source, 'function renderAgentDrawer()', 'function openAgentAction(');
+  const tabs = sourceSection(drawer, 'const tabs = [', 'const tabBar =');
+  const growth = sourceSection(drawer, 'const growth =', 'const upgradeHistory =');
+  const income = sourceSection(drawer, 'const income =', 'const calculationLogs =');
+  assert.equal(tabs.includes("{ id: 'logs', name: '计算日志' }"), false, '店主详情仍展示计算日志');
+  for (const marker of ['>重新计算</button>', '>状态调整</button>', '状态记录', '权益发放记录']) assert.equal(drawer.includes(marker), false, `店主详情仍展示：${marker}`);
+  for (const marker of ['<span>当前状态</span>', '<span>规则版本</span>']) assert.equal(growth.includes(marker), false, `成长与权益摘要仍展示：${marker}`);
+  for (const marker of ['commission-card', '当前店铺收益方案']) assert.equal(income.includes(marker), false, `经营与收益仍展示：${marker}`);
+  assert.ok(drawer.includes('data-agent-action="level"'), '店主详情应保留手动调级');
+  assert.ok(drawer.includes('手动调整至 LV4'), '升级记录缺少手动调整轨迹');
+});
+
+test('后台等级规则页仅保留规则与权益库', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const tabs = sourceSection(source, 'const sectionTabs = {', 'const levels = [');
+  const levels = sourceSection(source, 'function renderLevels()', 'function renderVersions()');
+  for (const marker of ["{ id: 'versions', name: '版本历史' }", "{ id: 'issuance', name: '权益发放记录' }"]) assert.equal(tabs.includes(marker), false, `等级页仍展示页签：${marker}`);
+  for (const marker of ['查看版本历史', '发布新版本', 'draft-banner', 'rule-summary', '全部升级方式', '本级新增权益', '店铺收益方案版本', '${row.benefits}', '${row.commission}']) {
+    assert.equal(levels.includes(marker), false, `等级规则页仍展示：${marker}`);
+  }
+  assert.ok(levels.includes('data-table-search'), '等级规则页应保留搜索');
+  assert.ok(source.includes('function renderVersions()') && source.includes('function renderIssuance()'), '隐藏页签的底层能力应保留');
+});
+
+test('后台权益库与编辑抽屉仅保留必要字段', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const benefits = sourceSection(source, 'function renderBenefits()', 'function renderIssuance()');
+  const drawer = sourceSection(source, 'function openBenefitDrawer', 'function openIssuanceDetail');
+  for (const marker of ['权益发放记录', 'rights-banner', '组内排序', 'data-benefit-up', 'data-benefit-down']) assert.equal(benefits.includes(marker), false, `权益库仍展示：${marker}`);
+  for (const marker of ['benefit-icon', '图标文字', 'benefit-link', '前台去使用跳转', '发放方式', '有效期规则', '生效口径', '前台开放范围', 'reference-box', '当前引用']) assert.equal(drawer.includes(marker), false, `权益抽屉仍展示：${marker}`);
+  assert.ok(drawer.includes('benefit-status'), '权益抽屉应保留当前状态');
+  assert.ok(benefits.includes('draggable="true"'), '权益库应保留拖拽排序');
 });
 
 test('后台升级指标统一使用店铺客户店铺收益和团队店主', () => {
@@ -194,11 +245,10 @@ test('后台覆盖店主列表、开店登记、店铺资料和内容管理', ()
   }
 });
 
-test('后台保留等级规则、版本历史、权益库、状态和任务能力', () => {
+test('后台隐藏版本与发放入口但保留底层能力', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
-  for (const marker of ['等级规则', '版本历史', '权益库', '权益发放记录', '状态管理', '计算日志', '存量迁移']) {
-    assert.ok(source.includes(marker));
-  }
+  for (const marker of ['等级规则', '权益库', '状态管理', '计算日志', '存量迁移']) assert.ok(source.includes(marker));
+  for (const marker of ['function renderVersions()', 'versions: renderVersions', 'function renderIssuance()', 'issuance: renderIssuance']) assert.ok(source.includes(marker), `底层能力缺少：${marker}`);
 });
 
 test('后台入口保留独立挂载点和操作弹层', () => {

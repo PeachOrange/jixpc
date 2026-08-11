@@ -22,9 +22,6 @@
       { id: 'dashboard', name: '经营总览', defaultTab: 'dashboard' },
       { id: 'owners', name: '店主与开店', defaultTab: 'owners' },
       { id: 'levels', name: '等级与权益', defaultTab: 'levels' },
-      { id: 'statuses', name: '状态管理', defaultTab: 'statuses' },
-      { id: 'content', name: '内容管理', defaultTab: 'content' },
-      { id: 'tasks', name: '任务中心', defaultTab: 'logs' },
     ],
   }];
 
