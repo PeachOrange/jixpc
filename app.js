@@ -116,7 +116,7 @@
   ];
 
   const moduleMeta = {
-    dashboard: ['经营分析', '店主经营总览', '观察有效经营、开店转化、等级分布和异常状态。'],
+    dashboard: ['经营分析', '店主经营总览', '观察有效经营、升级趋势和等级分布。'],
     owners: ['店主管理', '店主与开店', '统一管理店主、开店登记和店铺资料。'],
     registrations: ['店主管理', '店主与开店', '查看登记资料并执行幂等的手动开通。'],
     stores: ['店主管理', '店主与开店', '维护一对一店铺资料和名称变更记录。'],
@@ -160,11 +160,11 @@
   }
 
   function dashboardStats() {
-    return `<section class="stat-grid five"><article class="stat-card"><div class="stat-card-head"><span>店主总数</span><i>店</i></div><strong>12,680</strong><small>较上月 +4.8%</small></article><article class="stat-card"><div class="stat-card-head"><span>近90天有效经营率</span><i>营</i></div><strong>78.6%</strong><small>较上周 +1.2%</small></article><article class="stat-card"><div class="stat-card-head"><span>本月升级人数</span><i>升</i></div><strong>642</strong><small>其中自动升级 618 人</small></article><article class="stat-card"><div class="stat-card-head"><span>临门店主</span><i>临</i></div><strong>1,426</strong><small>下一级完成度 ≥ 80%</small></article><article class="stat-card"><div class="stat-card-head"><span>计算失败</span><i>错</i></div><strong>${logs.filter((row) => row.status === '失败').length}</strong><small class="warning">支持失败重算</small></article></section>`;
+    return `<section class="stat-grid dashboard-stats"><article class="stat-card"><div class="stat-card-head"><span>店主总数</span><i>店</i></div><strong>12,680</strong><small>较上月 +4.8%</small></article><article class="stat-card effective-operation-card"><div class="stat-card-head"><div class="stat-title-with-help"><span>近90天有效经营率</span><details class="effective-operation-definition"><summary aria-label="查看有效经营说明">!</summary><div><b>有效经营店主</b><p>近90天内，本人或现有分佣团队至少产生1笔有效订单的正常店主。</p><em>有效经营率 = 有效经营店主数 ÷ 正常店主总数</em></div></details></div><i>营</i></div><strong>78.6%</strong><small>较上周 +1.2%</small></article><article class="stat-card"><div class="stat-card-head"><span>本月升级人数</span><i>级</i></div><strong>642</strong><small>其中自动升级 618 人</small></article><article class="stat-card"><div class="stat-card-head"><span>即将升级店主</span><i>即</i></div><strong>1,426</strong><small>下一级完成度 ≥ 80%</small></article></section>`;
   }
 
   function renderDashboard() {
-    return `${pageHead('<button class="button" data-toast="经营明细已导出">下载经营明细</button><button class="primary-button" data-section="levels">管理等级与权益</button>')}${dashboardStats()}<section class="panel-grid dashboard-main"><article class="panel"><div class="panel-head"><h2>等级分布</h2><span>数据按小时更新</span></div>${[['LV1 普通用户',88,6340],['LV2—LV5',72,3660],['LV6—LV8',43,1810],['LV9—LV11',18,758],['LV12 超级合伙人',4,112]].map((row) => `<div class="bar-row"><span>${row[0]}</span><div class="bar-track"><i style="width:${row[1]}%"></i></div><b>${row[2]}</b></div>`).join('')}</article><article class="panel"><div class="panel-head"><h2>今日需关注</h2><span>点击进入对应明细</span></div><ul class="warning-list"><li><span>待开通登记</span><b>3</b></li><li><span>计算失败待重算</span><b>3</b></li><li><span>预警即将转休眠</span><b>42</b></li><li><span>店名风险待处理</span><b>1</b></li></ul></article></section><section class="panel-grid dashboard-secondary"><article class="panel"><div class="panel-head"><h2>本月升级流向</h2><span>共642人</span></div><div class="flow-list">${[['LV1 → LV2',168,72],['LV2 → LV3',146,63],['LV4 → LV5',112,49],['LV7 → LV8',84,36],['LV10 → LV11',32,14]].map((row) => `<div><span>${row[0]}</span><i><b style="width:${row[2]}%"></b></i><strong>${row[1]}人</strong></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><h2>临门等级分布</h2><span>下一级完成度 ≥ 80%</span></div><div class="near-levels"><article><strong>426</strong><span>待升 LV2</span></article><article><strong>318</strong><span>待升 LV5</span></article><article><strong>246</strong><span>待升 LV8</span></article><article><strong>86</strong><span>已达标</span></article></div><button class="text-button" data-section="owners">查看临门店主明细 →</button></article><article class="panel health-panel"><div class="panel-head"><h2>等级计算健康度</h2><span>近24小时</span></div><strong>99.96%</strong><div class="health-line"><i style="width:99.96%"></i></div><p>共执行 128,406 次，平均耗时 182 毫秒，3 条失败记录待处理。</p><button class="text-button" data-section="tasks">前往计算日志 →</button></article></section>`;
+    return `${pageHead('<button class="button" data-toast="经营明细已导出">下载经营明细</button><button class="primary-button" data-section="levels">管理等级与权益</button>')}${dashboardStats()}<section class="panel-grid dashboard-main"><article class="panel dashboard-level-panel"><div class="panel-head"><h2>等级分布</h2><span class="live-update"><i></i>实时更新 · <b data-level-live-time>--:--:--</b></span></div>${[['LV1 普通用户',88,6340],['LV2—LV5',72,3660],['LV6—LV8',43,1810],['LV9—LV11',18,758],['LV12 超级合伙人',4,112]].map((row) => `<div class="bar-row"><span>${row[0]}</span><div class="bar-track"><i style="width:${row[1]}%"></i></div><b>${row[2]}</b></div>`).join('')}</article></section><section class="panel-grid dashboard-secondary"><article class="panel"><div class="panel-head"><h2>本月升级流向</h2><span>共642人</span></div><div class="flow-list">${[['LV1 → LV2',168,72],['LV2 → LV3',146,63],['LV4 → LV5',112,49],['LV7 → LV8',84,36],['LV10 → LV11',32,14]].map((row) => `<div><span>${row[0]}</span><i><b style="width:${row[2]}%"></b></i><strong>${row[1]}人</strong></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><h2>即将升级店主分布</h2><span>下一级完成度 ≥ 80%</span></div><div class="near-levels"><article><strong>426</strong><span>待升 LV2</span></article><article><strong>318</strong><span>待升 LV5</span></article><article><strong>246</strong><span>待升 LV8</span></article><article><strong>86</strong><span>已达标</span></article></div><button class="text-button" data-section="owners">查看即将升级店主明细 →</button></article></section>`;
   }
 
   function renderLevels() {
@@ -262,11 +262,18 @@
     return `${pageHead()}<section class="migration-hero"><div><h2>存量店主等效迁移</h2><p>成长店主 → LV2 · 轻享店主 → LV5 · 星享店主 → LV8 · 超级店主 → LV11 · 超级合伙人 → LV12</p></div><div class="migration-steps"><button data-migration="1" class="${state.migrationStep === 1 ? 'active' : ''}">1. 执行试跑</button><button data-migration="2" class="${state.migrationStep === 2 ? 'active' : ''}" ${state.migrationStep < 1 ? 'disabled' : ''}>2. 正式迁移</button><button data-migration="3" class="${state.migrationStep === 3 ? 'active' : ''}" ${state.migrationStep < 2 ? 'disabled' : ''}>3. 结果校验</button></div></section><section class="mapping-grid">${mapping.map((row) => `<article><span>${row[0]}</span><b>→</b><strong>${row[1]}</strong><small>${row[2]}人</small></article>`).join('')}</section><section class="rule-summary migration-summary"><article><span>待迁移</span><strong>12,680</strong><small>全部存量店主</small></article><article><span>映射完整度</span><strong>100%</strong><small>所有老身份均有目标等级</small></article><article><span>预计立即满足下一级</span><strong>86</strong><small>迁移后仅记录，不立即升级</small></article><article class="pending"><span>未处理异常</span><strong>${state.migrationStep === 2 ? 3 : 0}</strong><small>全部清零后才可开启自动升级</small></article></section><section class="panel migration-result"><div class="panel-head"><h2>最近执行结果</h2><span>${state.migrationStep ? '步骤已记录' : '尚未执行'}</span></div><p>${resultCopy}</p><div class="migration-condition"><strong>自动升级启用条件</strong><span class="${state.migrationStep === 3 ? 'ready' : ''}">迁移完成 · 异常清零 · 结果校验通过</span></div></section>`;
   }
 
+  function refreshDashboardLiveTime() {
+    const target = content.querySelector('[data-level-live-time]');
+    if (!target) return;
+    target.textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+  }
+
   function render() {
     renderNavigation();
     const views = { dashboard: renderDashboard, owners: renderAgents, registrations: renderRegistrations, stores: renderStores, levels: renderLevels, versions: renderVersions, benefits: renderBenefits, issuance: renderIssuance, statuses: renderStatuses, content: renderContentManagement, logs: renderLogs, migration: renderMigration };
     content.innerHTML = (views[state.tab] || renderLevels)();
     autoUpgrade.checked = state.autoUpgrade;
+    refreshDashboardLiveTime();
   }
 
   function openDrawer(title, kicker, body, footer = '') {
@@ -721,5 +728,6 @@
   [publishModal, benefitPickerModal, confirmModal, infoModal].forEach((modal) => modal.addEventListener('click', (event) => { if (event.target === modal) modal.hidden = true; }));
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeDrawer(); publishModal.hidden = true; benefitPickerModal.hidden = true; confirmModal.hidden = true; infoModal.hidden = true; } });
 
+  setInterval(refreshDashboardLiveTime, 1000);
   render();
 })();

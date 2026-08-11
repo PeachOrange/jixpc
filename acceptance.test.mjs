@@ -27,6 +27,52 @@ function sourceSection(source, startMarker, endMarker) {
   return source.slice(start, end);
 }
 
+test('后台经营总览收敛为四项指标并解释有效经营', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const stats = sourceSection(source, 'function dashboardStats()', 'function renderDashboard()');
+  assert.equal((stats.match(/<article class="stat-card/g) || []).length, 4, '经营总览顶部应只保留四项指标');
+  for (const marker of [
+    'dashboard-stats', '近90天有效经营率', 'stat-title-with-help', 'effective-operation-definition',
+    '近90天内，本人或现有分佣团队至少产生1笔有效订单',
+    '有效经营率 = 有效经营店主数 ÷ 正常店主总数', '即将升级店主',
+  ]) {
+    assert.ok(stats.includes(marker), `经营总览指标缺少：${marker}`);
+  }
+  assert.match(
+    stats,
+    /<div class="stat-title-with-help"><span>近90天有效经营率<\/span><details class="effective-operation-definition"><summary aria-label="查看有效经营说明">!<\/summary>/,
+    '有效经营说明感叹号应紧跟在指标标题后',
+  );
+  assert.equal(stats.includes('<summary>什么是有效经营</summary>'), false, '不应继续在卡片底部展示文字说明按钮');
+  for (const marker of ['stat-grid five', '临门店主', '计算失败', '支持失败重算']) {
+    assert.equal(stats.includes(marker), false, `经营总览仍保留旧指标：${marker}`);
+  }
+  assert.ok(source.includes('观察有效经营、升级趋势和等级分布。'), '经营总览头部说明未随布局更新');
+});
+
+test('后台经营总览使用实时等级分布和通栏双列新布局', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const styles = readFileSync(`${root}/styles.css`, 'utf8');
+  const dashboard = sourceSection(source, 'function renderDashboard()', 'function renderLevels()');
+  for (const marker of [
+    'dashboard-level-panel', 'live-update', 'data-level-live-time', '实时更新',
+    '本月升级流向', '即将升级店主分布', '查看即将升级店主明细',
+  ]) {
+    assert.ok(dashboard.includes(marker), `经营总览新布局缺少：${marker}`);
+  }
+  for (const marker of ['数据按小时更新', '今日需关注', '临门等级分布', '查看临门店主明细', '等级计算健康度', 'health-panel']) {
+    assert.equal(dashboard.includes(marker), false, `经营总览仍保留旧数据块：${marker}`);
+  }
+  assert.ok(source.includes('function refreshDashboardLiveTime()'), '缺少等级分布实时更新时间函数');
+  assert.ok(source.includes('setInterval(refreshDashboardLiveTime, 1000)'), '等级分布更新时间未持续刷新');
+  for (const marker of ['.dashboard-stats', '.dashboard-main', '.dashboard-secondary', '.stat-title-with-help', '.effective-operation-definition', '.live-update']) {
+    assert.ok(styles.includes(marker), `经营总览缺少新布局样式：${marker}`);
+  }
+  assert.match(styles, /\.dashboard-stats\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/, '顶部指标需要四列等宽布局');
+  assert.match(styles, /\.dashboard-main\s*\{[^}]*grid-template-columns:\s*1fr;/, '等级分布需要通栏布局');
+  assert.match(styles, /\.dashboard-secondary\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/, '下方分析需要双列布局');
+});
+
 test('后台只有店主管理一级菜单并合并六个二级菜单', () => {
   const menu = JSON.parse(JSON.stringify(adminModel().getAdminMenu()));
   assert.equal(menu.length, 1);
