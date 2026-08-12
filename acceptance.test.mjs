@@ -125,10 +125,102 @@ test('后台权益库与编辑抽屉仅保留必要字段', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const benefits = sourceSection(source, 'function renderBenefits()', 'function renderIssuance()');
   const drawer = sourceSection(source, 'function openBenefitDrawer', 'function openIssuanceDetail');
+  const form = sourceSection(source, 'function benefitFormMarkup', 'function prepareBenefitForm');
   for (const marker of ['权益发放记录', 'rights-banner', '组内排序', 'data-benefit-up', 'data-benefit-down']) assert.equal(benefits.includes(marker), false, `权益库仍展示：${marker}`);
   for (const marker of ['benefit-icon', '图标文字', 'benefit-link', '前台去使用跳转', '发放方式', '有效期规则', '生效口径', '前台开放范围', 'reference-box', '当前引用']) assert.equal(drawer.includes(marker), false, `权益抽屉仍展示：${marker}`);
-  assert.ok(drawer.includes('benefit-status'), '权益抽屉应保留当前状态');
+  assert.ok(form.includes('benefit-status'), '权益编辑页应保留当前状态');
   assert.ok(benefits.includes('draggable="true"'), '权益库应保留拖拽排序');
+});
+
+test('权益规则模板固定为七类只读定义', () => {
+  const model = adminModel();
+  const templates = model.getRuleTemplates();
+  assert.deepEqual(JSON.parse(JSON.stringify(templates.map((item) => item.name))), [
+    '新人成交奖励', '品类订单佣金', '品类二级订单佣金', '开通店主与管理收益', '团队佣金', '每日视频下载', '每月鉴定次数',
+  ]);
+  assert.ok(templates.every((item) => item.readOnly === true));
+  templates[0].name = '被修改的模板';
+  assert.equal(model.getRuleTemplates()[0].name, '新人成交奖励');
+});
+
+test('品类直属与二级订单佣金使用独立模板和校验上限', () => {
+  const model = adminModel();
+  const templates = model.getRuleTemplates();
+  const direct = templates.find((item) => item.id === 'category-commission');
+  const secondary = templates.find((item) => item.id === 'category-secondary-commission');
+  assert.equal(direct.parameters.find((item) => item.key === 'rate').max, 100);
+  assert.equal(secondary.parameters.find((item) => item.key === 'rate').max, 50);
+  assert.equal(model.validateBenefitConfiguration('category-commission', {
+    items: [{ categories: ['正品鞋'], rate: 100, capType: 'capped', capAmount: 75 }],
+  }).valid, true);
+  assert.equal(model.validateBenefitConfiguration('category-secondary-commission', {
+    items: [{ categories: ['正品鞋'], rate: 50.01, capType: 'unlimited' }],
+  }).valid, false);
+});
+
+test('等级档位覆盖按最近等级向上继承', () => {
+  const model = adminModel();
+  const benefits = [{
+    id: 'B01', kind: 'parameterized', templateId: 'newcomer-reward',
+    tiers: [{ id: 'T1', name: '档位 1', values: { amount: 10 } }, { id: 'T2', name: '档位 2', values: { amount: 20 } }],
+  }];
+  const levels = [
+    { level: 2, benefitIds: ['B01'], tierSelections: { B01: 'T1' } },
+    { level: 5, benefitIds: [], tierSelections: { B01: 'T2' } },
+  ];
+  assert.deepEqual(JSON.parse(JSON.stringify(model.resolveLevelTierSelections(levels, benefits, 4))), { B01: 'T1' });
+  assert.deepEqual(JSON.parse(JSON.stringify(model.resolveLevelTierSelections(levels, benefits, 8))), { B01: 'T2' });
+  assert.equal(model.getBenefitTier(benefits[0], 'T2').values.amount, 20);
+});
+
+test('已引用档位禁止删除且等级档位选择必须有效', () => {
+  const model = adminModel();
+  const benefit = {
+    id: 'B01', kind: 'parameterized', templateId: 'newcomer-reward',
+    tiers: [{ id: 'T1', name: '档位 1', values: { amount: 10 } }, { id: 'T2', name: '档位 2', values: { amount: 20 } }],
+  };
+  const levels = [{ level: 2, benefitIds: ['B01'], tierSelections: { B01: 'T1' } }];
+  assert.equal(model.canRemoveBenefitTier('B01', 'T1', levels).allowed, false);
+  assert.equal(model.canRemoveBenefitTier('B01', 'T2', levels).allowed, true);
+  assert.equal(model.validateLevelTierSelections(levels, [benefit], 2, ['B01'], { B01: 'T1' }).valid, true);
+  assert.equal(model.validateLevelTierSelections(levels, [benefit], 2, ['B01'], {}).valid, false);
+});
+
+test('权益库包含十六项权益和七项参数化权益', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const data = sourceSection(source, 'let benefits = [', 'let issuanceRows = [');
+  assert.equal((data.match(/id: 'B\d+'/g) || []).length, 16);
+  assert.equal((data.match(/kind: 'parameterized'/g) || []).length, 7);
+  assert.equal((data.match(/kind: 'fixed'/g) || []).length, 9);
+  assert.match(data, /id: 'B02'.*templateId: 'category-commission'/s);
+  assert.match(data, /id: 'B16'.*templateId: 'category-secondary-commission'/s);
+});
+
+test('权益规则模板页只读展示参数与固定规则', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const page = sourceSection(source, 'function renderRuleTemplates()', 'function renderBenefits()');
+  for (const marker of ['model.getRuleTemplates()', '参数定义', '固定规则', '使用权益']) assert.ok(page.includes(marker));
+  for (const marker of ['data-new-template', 'data-edit-template', 'data-delete-template']) assert.equal(page.includes(marker), false);
+});
+
+test('等级编辑支持权益档位选择且实时生效', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const drawer = sourceSection(source, 'function renderLevelDrawer()', 'function openLevelDrawer(');
+  for (const marker of ['level-benefit-row', 'data-level-tier-selection', 'model.summarizeBenefitTier', '继承权益']) assert.ok(drawer.includes(marker));
+  const save = sourceSection(source, "const saveLevel = event.target.closest('[data-save-level]');", "if (event.target.closest('[data-new-benefit]'))");
+  assert.ok(save.includes('等级与权益已保存并实时生效'));
+  assert.equal(save.includes('草稿'), false);
+});
+
+test('新增和编辑权益进入内容区独立页面', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  assert.ok(source.includes('function renderBenefitEditorPage()'));
+  assert.ok(source.includes('benefit-editor-layout'));
+  assert.ok(source.includes('data-back-benefit-library'));
+  const events = sourceSection(source, "if (event.target.closest('[data-new-benefit]'))", "if (event.target.closest('[data-clear-benefit-rule]'))");
+  assert.ok(events.includes("openBenefitEditor('create')"));
+  assert.ok(events.includes("openBenefitDrawer('view'"));
+  assert.ok(events.includes("openBenefitEditor('edit'"));
 });
 
 test('后台升级指标统一使用店铺客户店铺收益和团队店主', () => {

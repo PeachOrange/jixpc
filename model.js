@@ -28,8 +28,242 @@
   const benefitCategoryOrder = {
     收益类: 0,
     运营类: 1,
-    鉴定类: 2,
+    证书类: 2,
+    鉴定类: 3,
   };
+
+  const businessCategories = ['正品鞋', '正品服', '废旧手机', '普鞋', '旧衣', '旧书'];
+
+  const ruleTemplates = [
+    {
+      id: 'newcomer-reward', name: '新人成交奖励', category: '收益类', readOnly: true,
+      description: '平台新用户首次成功完成回收交易后，向归属店主发放一次奖励。',
+      fixedRules: ['全平台仅首次有效订单', '订单取消或退款不撤销奖励', '按交易完成时实时参数执行'],
+      parameters: [{ key: 'amount', label: '奖励金额', type: 'money', minExclusive: 0, decimals: 2, unit: '元' }],
+    },
+    {
+      id: 'category-commission', name: '品类订单佣金', category: '收益类', readOnly: true,
+      description: '按业务品类配置直属店主订单佣金。', fixedBase: '最终回收成交价',
+      fixedRules: ['仅计算直属店主佣金', '单笔可设置封顶或上不封顶', '同一档位内品类不可重复'],
+      parameters: [
+        { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
+        { key: 'rate', label: '直属店主佣金比例', type: 'percent', minExclusive: 0, max: 100, decimals: 2, unit: '%' },
+        { key: 'cap', label: '直属单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
+      ],
+    },
+    {
+      id: 'category-secondary-commission', name: '品类二级订单佣金', category: '收益类', readOnly: true,
+      description: '按业务品类配置上级店主的二级订单佣金。', fixedBase: '最终回收成交价',
+      fixedRules: ['仅计算上级店主佣金', '单笔可设置封顶或上不封顶', '同一档位内品类不可重复'],
+      parameters: [
+        { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
+        { key: 'rate', label: '上级店主佣金比例', type: 'percent', minExclusive: 0, max: 50, decimals: 2, unit: '%' },
+        { key: 'cap', label: '上级单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
+      ],
+    },
+    {
+      id: 'management-income', name: '开通店主与管理收益', category: '收益类', readOnly: true,
+      description: '按直接开通的一级下属店主订单成交价计算管理收益。', fixedBase: '最终回收成交价',
+      fixedRules: ['仅直接开通的一级下属店主', '按交易完成时实时参数执行'],
+      parameters: [
+        { key: 'rate', label: '管理收益比例', type: 'percent', minExclusive: 0, max: 20, decimals: 2, unit: '%' },
+        { key: 'cap', label: '单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
+      ],
+    },
+    {
+      id: 'team-commission', name: '团队佣金', category: '收益类', readOnly: true,
+      description: '对系统判定范围内的每笔团队回收单计算佣金。', fixedBase: '最终回收成交价',
+      fixedRules: ['团队及区域范围由系统固定', '运营仅配置比例和上限'],
+      parameters: [
+        { key: 'rate', label: '团队佣金比例', type: 'percent', minExclusive: 0, max: 20, decimals: 2, unit: '%' },
+        { key: 'cap', label: '单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
+      ],
+    },
+    {
+      id: 'daily-video', name: '每日视频下载', category: '运营类', readOnly: true,
+      description: '按自然日提供视频素材下载额度。',
+      fixedRules: ['每日24:00清零且不结转', '等级变化次日00:00生效'],
+      parameters: [{ key: 'dailyQuota', label: '每日下载条数', type: 'integer', min: 1, unit: '条/日' }],
+    },
+    {
+      id: 'monthly-appraisal', name: '每月鉴定次数', category: '鉴定类', readOnly: true,
+      description: '按自然月提供鉴定服务次数。',
+      fixedRules: ['月末清零且不结转', '等级变化次日00:00生效', '剩余次数取新月额度减当月已使用次数，不低于0'],
+      parameters: [{ key: 'monthlyQuota', label: '每月鉴定次数', type: 'integer', min: 1, unit: '次/月' }],
+    },
+  ];
+
+  function cloneValue(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function getRuleTemplates() {
+    return cloneValue(ruleTemplates);
+  }
+
+  function getBusinessCategories() {
+    return businessCategories.slice();
+  }
+
+  function getBenefitTier(benefit, tierId) {
+    if (!benefit || benefit.kind !== 'parameterized') return null;
+    const tier = (benefit.tiers || []).find((item) => item.id === tierId);
+    return tier ? cloneValue(tier) : null;
+  }
+
+  function summarizeBenefitTier(benefit, tier) {
+    const values = tier && tier.values || {};
+    if (benefit.templateId === 'newcomer-reward') return `${values.amount || 0} 元`;
+    if (['category-commission', 'category-secondary-commission'].includes(benefit.templateId)) {
+      const items = values.items || [];
+      const rates = items.map((item) => Number(item.rate)).filter(Number.isFinite);
+      const cappedAmounts = items.filter((item) => item.capType === 'capped').map((item) => Number(item.capAmount)).filter(Number.isFinite);
+      const capSummary = cappedAmounts.length ? `｜封顶 ${Math.max(...cappedAmounts)} 元` : items.some((item) => item.capType === 'unlimited') ? '｜上不封顶' : '';
+      return `${items.length} 组品类｜${rates.length ? Math.min(...rates) : 0}% 起${capSummary}`;
+    }
+    if (['management-income', 'team-commission'].includes(benefit.templateId)) {
+      return `${values.rate || 0}%｜${values.capType === 'capped' ? `封顶 ${values.capAmount || 0} 元` : '上不封顶'}`;
+    }
+    if (benefit.templateId === 'daily-video') return `每日 ${values.dailyQuota || 0} 条`;
+    if (benefit.templateId === 'monthly-appraisal') return `每月 ${values.monthlyQuota || 0} 次`;
+    return '完整参数档位';
+  }
+
+  function canAssignBenefit(benefit) {
+    if (!benefit || benefit.kind !== 'parameterized') return { allowed: true };
+    if (!benefit.templateId) return { allowed: false, reason: '参数化权益尚未选择规则模板' };
+    if (!(benefit.tiers || []).length) return { allowed: false, reason: '参数化权益尚未配置参数档位' };
+    if (benefit.tiers.some((tier) => !tier.id || !String(tier.name || '').trim())) return { allowed: false, reason: '参数档位缺少稳定 ID 或名称' };
+    const invalid = benefit.tiers.find((tier) => !validateBenefitConfiguration(benefit.templateId, tier.values).valid);
+    if (invalid) return { allowed: false, reason: `${invalid.name || '参数档位'}参数无效` };
+    return { allowed: true };
+  }
+
+  function resolveLevelBenefitIds(levelRecords, level) {
+    return [...new Set((levelRecords || [])
+      .filter((item) => Number(item.level) <= Number(level))
+      .sort((left, right) => Number(left.level) - Number(right.level))
+      .flatMap((item) => item.benefitIds || []))];
+  }
+
+  function resolveLevelTierSelections(levelRecords, benefits, level) {
+    const selections = {};
+    (levelRecords || [])
+      .filter((item) => Number(item.level) <= Number(level))
+      .sort((left, right) => Number(left.level) - Number(right.level))
+      .forEach((item) => Object.assign(selections, item.tierSelections || {}));
+    const ownedIds = new Set(resolveLevelBenefitIds(levelRecords, level));
+    return Object.fromEntries(Object.entries(selections).filter(([benefitId, tierId]) => {
+      const benefit = (benefits || []).find((item) => item.id === benefitId);
+      return ownedIds.has(benefitId) && Boolean(getBenefitTier(benefit, tierId));
+    }));
+  }
+
+  function canRemoveBenefitTier(benefitId, tierId, levelRecords) {
+    const referencedLevels = (levelRecords || [])
+      .filter((level) => level.tierSelections && level.tierSelections[benefitId] === tierId)
+      .map((level) => level.level);
+    return referencedLevels.length
+      ? { allowed: false, reason: `${referencedLevels.map((level) => `LV${level}`).join('、')} 正在使用该档位` }
+      : { allowed: true };
+  }
+
+  function validateLevelTierSelections(levelRecords, benefits, level, benefitIds, tierSelections) {
+    const allBenefitIds = [...new Set([
+      ...resolveLevelBenefitIds(levelRecords, Number(level) - 1),
+      ...(benefitIds || []),
+    ])];
+    const previousSelections = resolveLevelTierSelections(levelRecords, benefits, Number(level) - 1);
+    const resolvedSelections = { ...previousSelections, ...(tierSelections || {}) };
+    for (const benefitId of allBenefitIds) {
+      const benefit = (benefits || []).find((item) => item.id === benefitId);
+      if (!benefit) return { valid: false, error: `权益 ${benefitId} 不存在` };
+      if (benefit.kind !== 'parameterized') continue;
+      const tier = getBenefitTier(benefit, resolvedSelections[benefitId]);
+      if (!tier) return { valid: false, error: `${benefit.name || benefit.id}必须选择有效档位` };
+      const validation = validateBenefitConfiguration(benefit.templateId, tier.values);
+      if (!validation.valid) return { valid: false, error: `${benefit.name || benefit.id}：${validation.errors[0]}` };
+    }
+    return { valid: true };
+  }
+
+  function canChangeBenefitTemplate(benefit, referencedLevels) {
+    if ((benefit && benefit.tiers || []).length) return { allowed: false, reason: '请先清空参数档位后再切换模板' };
+    if ((referencedLevels || []).length) return { allowed: false, reason: '请先移除等级引用后再切换模板' };
+    return { allowed: true };
+  }
+
+  function canUpdateBenefitRule(original, next, referencedLevels, options) {
+    const references = referencedLevels || [];
+    const templateWasCleared = Boolean(options && options.templateWasCleared);
+    const usedTierIds = options && options.usedTierIds || [];
+    if (references.length && original.kind !== next.kind) return { allowed: false, reason: '该权益已被等级引用，请先解除引用后再修改权益形态' };
+    if (original.templateId !== next.templateId && !templateWasCleared && ((original.tiers || []).length || references.length)) {
+      return { allowed: false, reason: '请先解除等级引用并清空参数档位后再切换模板' };
+    }
+    if (next.kind === 'parameterized' && !(next.tiers || []).length) return { allowed: false, reason: '参数化权益至少保留一个参数档位' };
+    const nextTierIds = new Set((next.tiers || []).map((tier) => tier.id));
+    if (usedTierIds.some((tierId) => !nextTierIds.has(tierId))) return { allowed: false, reason: '档位正在被等级使用，不能删除' };
+    return { allowed: true };
+  }
+
+  function positiveNumber(value, max) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 && (max === undefined || number <= max);
+  }
+
+  function hasAtMostTwoDecimals(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && Math.abs(number * 100 - Math.round(number * 100)) < 1e-8;
+  }
+
+  function validateCap(values, prefix, errors) {
+    const typeKey = prefix ? `${prefix}CapType` : 'capType';
+    const amountKey = prefix ? `${prefix}CapAmount` : 'capAmount';
+    if (!['capped', 'unlimited'].includes(values[typeKey])) errors.push('请选择封顶方式');
+    if (values[typeKey] === 'capped' && !positiveNumber(values[amountKey])) {
+      errors.push('选择封顶时必须填写大于0的封顶金额');
+    }
+    if (values[typeKey] === 'capped' && positiveNumber(values[amountKey]) && !hasAtMostTwoDecimals(values[amountKey])) errors.push('金额最多保留两位小数');
+  }
+
+  function validateCategoryCommission(values, maxRate, rateLabel) {
+    const errors = [];
+    const usedCategories = new Set();
+    (values.items || []).forEach((item) => {
+      const categories = item.categories || [];
+      if (!categories.length || categories.some((category) => !businessCategories.includes(category))) errors.push('请选择有效业务品类');
+      if (categories.some((category) => usedCategories.has(category))) errors.push('同一档位内业务品类不可重复');
+      categories.forEach((category) => usedCategories.add(category));
+      if (!positiveNumber(item.rate, maxRate)) errors.push(`${rateLabel}必须大于0且不超过${maxRate}%`);
+      if (positiveNumber(item.rate, maxRate) && !hasAtMostTwoDecimals(item.rate)) errors.push('比例最多保留两位小数');
+      validateCap(item, '', errors);
+    });
+    if (!(values.items || []).length) errors.push('至少配置一个品类计算项');
+    return errors;
+  }
+
+  function validateBenefitConfiguration(templateId, values) {
+    const errors = [];
+    if (!ruleTemplates.some((item) => item.id === templateId)) return { valid: false, errors: ['未找到规则模板'] };
+
+    if (templateId === 'newcomer-reward' && !positiveNumber(values.amount)) errors.push('奖励金额必须大于0');
+    if (templateId === 'newcomer-reward' && positiveNumber(values.amount) && !hasAtMostTwoDecimals(values.amount)) errors.push('金额最多保留两位小数');
+    if (templateId === 'daily-video' && (!Number.isInteger(Number(values.dailyQuota)) || Number(values.dailyQuota) < 1)) errors.push('每日下载条数必须为正整数');
+    if (templateId === 'monthly-appraisal' && (!Number.isInteger(Number(values.monthlyQuota)) || Number(values.monthlyQuota) < 1)) errors.push('每月鉴定次数必须为正整数');
+    if (['management-income', 'team-commission'].includes(templateId)) {
+      if (!positiveNumber(values.rate, 20)) errors.push('比例必须大于0且不超过20%');
+      if (positiveNumber(values.rate, 20) && !hasAtMostTwoDecimals(values.rate)) errors.push('比例最多保留两位小数');
+      validateCap(values, '', errors);
+    }
+    if (templateId === 'category-commission') errors.push(...validateCategoryCommission(values, 100, '直属店主佣金比例'));
+    if (templateId === 'category-secondary-commission') errors.push(...validateCategoryCommission(values, 50, '上级店主佣金比例'));
+    return { valid: errors.length === 0, errors: [...new Set(errors)] };
+  }
+
+  function appendBenefitChangeLog(history, change) {
+    return [...(history || []).map((item) => cloneValue(item)), { ...cloneValue(change), effective: '实时生效' }];
+  }
 
   function getAdminMenu() {
     return adminMenu.map((group) => ({
@@ -123,10 +357,11 @@
     const name = String(input.name || '').trim();
     if (!name) return { ok: false, records: records.map((item) => ({ ...item })), error: '请输入权益名称' };
     if (records.some((item) => item.name === name)) return { ok: false, records: records.map((item) => ({ ...item })), error: '权益名称不可重复' };
+    const { source: _ignoredSource, ...benefitInput } = input;
     return {
       ok: true,
       records: [...records.map((item) => ({ ...item })), {
-        ...input,
+        ...benefitInput,
         id: nextBenefitId(records),
         name,
         category: input.category || '运营类',
@@ -135,7 +370,6 @@
         shortDescription: input.shortDescription || input.description || '暂无说明',
         detailDescription: input.detailDescription || input.description || '暂无说明',
         description: input.description || '暂无说明',
-        source: input.source || '按等级配置',
         status: input.status || '生效中',
       }],
     };
@@ -147,9 +381,14 @@
     const name = String(input.name === undefined ? original.name : input.name).trim();
     if (!name) return { ok: false, records: records.map((item) => ({ ...item })), error: '请输入权益名称' };
     if (records.some((item) => item.id !== id && item.name === name)) return { ok: false, records: records.map((item) => ({ ...item })), error: '权益名称不可重复' };
+    const { source: _ignoredSource, ...benefitInput } = input;
     return {
       ok: true,
-      records: records.map((item) => item.id === id ? { ...item, ...input, name } : { ...item }),
+      records: records.map((item) => {
+        if (item.id !== id) return { ...item };
+        const { source: _legacySource, ...benefit } = item;
+        return { ...benefit, ...benefitInput, name };
+      }),
     };
   }
 
@@ -263,22 +502,35 @@
   }
 
   root.AdminModel = {
+    appendBenefitChangeLog,
+    canAssignBenefit,
+    canChangeBenefitTemplate,
+    canRemoveBenefitTier,
+    canUpdateBenefitRule,
     createBenefit,
     createPublishPreview,
     canMutateBenefit,
     changeIssuanceStatus,
     deleteBenefit,
+    getBusinessCategories,
+    getBenefitTier,
+    getRuleTemplates,
     getAdminMenu,
     mergeBenefitSelection,
     publishVersion,
     openStoreOwner,
     renameStore,
+    resolveLevelBenefitIds,
+    resolveLevelTierSelections,
     retryCalculation,
     reorderBenefit,
     runMigration,
     sortBenefits,
+    summarizeBenefitTier,
     updateBenefit,
     upsertRegistration,
+    validateBenefitConfiguration,
+    validateLevelTierSelections,
     validateRule,
   };
 })(globalThis);
