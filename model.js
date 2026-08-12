@@ -44,7 +44,7 @@
     {
       id: 'category-commission', name: '品类订单佣金', category: '收益类', readOnly: true,
       description: '按业务品类配置直属店主订单佣金。', fixedBase: '最终回收成交价',
-      fixedRules: ['仅计算直属店主佣金', '单笔可设置封顶或上不封顶', '同一档位内品类不可重复'],
+      fixedRules: ['仅计算直属店主佣金', '单笔可设置封顶或上不封顶', '同一权益内品类不可重复'],
       parameters: [
         { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
         { key: 'rate', label: '直属店主佣金比例', type: 'percent', minExclusive: 0, max: 100, decimals: 2, unit: '%' },
@@ -54,7 +54,7 @@
     {
       id: 'category-secondary-commission', name: '品类二级订单佣金', category: '收益类', readOnly: true,
       description: '按业务品类配置上级店主的二级订单佣金。', fixedBase: '最终回收成交价',
-      fixedRules: ['仅计算上级店主佣金', '单笔可设置封顶或上不封顶', '同一档位内品类不可重复'],
+      fixedRules: ['仅计算上级店主佣金', '单笔可设置封顶或上不封顶', '同一权益内品类不可重复'],
       parameters: [
         { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
         { key: 'rate', label: '上级店主佣金比例', type: 'percent', minExclusive: 0, max: 50, decimals: 2, unit: '%' },
@@ -105,14 +105,8 @@
     return businessCategories.slice();
   }
 
-  function getBenefitTier(benefit, tierId) {
-    if (!benefit || benefit.kind !== 'parameterized') return null;
-    const tier = (benefit.tiers || []).find((item) => item.id === tierId);
-    return tier ? cloneValue(tier) : null;
-  }
-
-  function summarizeBenefitTier(benefit, tier) {
-    const values = tier && tier.values || {};
+  function summarizeBenefitConfiguration(benefit) {
+    const values = benefit && benefit.values || {};
     if (benefit.templateId === 'newcomer-reward') return `${values.amount || 0} 元`;
     if (['category-commission', 'category-secondary-commission'].includes(benefit.templateId)) {
       const items = values.items || [];
@@ -126,69 +120,43 @@
     }
     if (benefit.templateId === 'daily-video') return `每日 ${values.dailyQuota || 0} 条`;
     if (benefit.templateId === 'monthly-appraisal') return `每月 ${values.monthlyQuota || 0} 次`;
-    return '完整参数档位';
+    return '完整规则参数';
   }
 
   function canAssignBenefit(benefit) {
     if (!benefit || benefit.kind !== 'parameterized') return { allowed: true };
     if (!benefit.templateId) return { allowed: false, reason: '参数化权益尚未选择规则模板' };
-    if (!(benefit.tiers || []).length) return { allowed: false, reason: '参数化权益尚未配置参数档位' };
-    if (benefit.tiers.some((tier) => !tier.id || !String(tier.name || '').trim())) return { allowed: false, reason: '参数档位缺少稳定 ID 或名称' };
-    const invalid = benefit.tiers.find((tier) => !validateBenefitConfiguration(benefit.templateId, tier.values).valid);
-    if (invalid) return { allowed: false, reason: `${invalid.name || '参数档位'}参数无效` };
+    const validation = validateBenefitConfiguration(benefit.templateId, benefit.values || {});
+    if (!validation.valid) return { allowed: false, reason: `规则参数无效：${validation.errors[0]}` };
     return { allowed: true };
   }
 
   function resolveLevelBenefitIds(levelRecords, level) {
-    return [...new Set((levelRecords || [])
-      .filter((item) => Number(item.level) <= Number(level))
-      .sort((left, right) => Number(left.level) - Number(right.level))
-      .flatMap((item) => item.benefitIds || []))];
+    const record = (levelRecords || []).find((item) => Number(item.level) === Number(level));
+    return [...new Set(record && record.benefitIds || [])];
   }
 
-  function resolveLevelTierSelections(levelRecords, benefits, level) {
-    const selections = {};
-    (levelRecords || [])
-      .filter((item) => Number(item.level) <= Number(level))
-      .sort((left, right) => Number(left.level) - Number(right.level))
-      .forEach((item) => Object.assign(selections, item.tierSelections || {}));
-    const ownedIds = new Set(resolveLevelBenefitIds(levelRecords, level));
-    return Object.fromEntries(Object.entries(selections).filter(([benefitId, tierId]) => {
+  function validateLevelBenefitSelection(levelRecords, benefits, level, benefitIds) {
+    const templateIds = new Set();
+    for (const benefitId of benefitIds || []) {
       const benefit = (benefits || []).find((item) => item.id === benefitId);
-      return ownedIds.has(benefitId) && Boolean(getBenefitTier(benefit, tierId));
-    }));
-  }
-
-  function canRemoveBenefitTier(benefitId, tierId, levelRecords) {
-    const referencedLevels = (levelRecords || [])
-      .filter((level) => level.tierSelections && level.tierSelections[benefitId] === tierId)
-      .map((level) => level.level);
-    return referencedLevels.length
-      ? { allowed: false, reason: `${referencedLevels.map((level) => `LV${level}`).join('、')} 正在使用该档位` }
-      : { allowed: true };
-  }
-
-  function validateLevelTierSelections(levelRecords, benefits, level, benefitIds, tierSelections) {
-    const allBenefitIds = [...new Set([
-      ...resolveLevelBenefitIds(levelRecords, Number(level) - 1),
-      ...(benefitIds || []),
-    ])];
-    const previousSelections = resolveLevelTierSelections(levelRecords, benefits, Number(level) - 1);
-    const resolvedSelections = { ...previousSelections, ...(tierSelections || {}) };
+      if (benefit && benefit.kind === 'parameterized' && benefit.templateId) {
+        if (templateIds.has(benefit.templateId)) return { valid: false, error: '同一权益规则只能选择一项权益' };
+        templateIds.add(benefit.templateId);
+      }
+    }
+    const allBenefitIds = [...new Set(benefitIds || [])];
     for (const benefitId of allBenefitIds) {
       const benefit = (benefits || []).find((item) => item.id === benefitId);
       if (!benefit) return { valid: false, error: `权益 ${benefitId} 不存在` };
-      if (benefit.kind !== 'parameterized') continue;
-      const tier = getBenefitTier(benefit, resolvedSelections[benefitId]);
-      if (!tier) return { valid: false, error: `${benefit.name || benefit.id}必须选择有效档位` };
-      const validation = validateBenefitConfiguration(benefit.templateId, tier.values);
-      if (!validation.valid) return { valid: false, error: `${benefit.name || benefit.id}：${validation.errors[0]}` };
+      const assignment = canAssignBenefit(benefit);
+      if (!assignment.allowed) return { valid: false, error: `${benefit.name || benefit.id}：${assignment.reason}` };
     }
     return { valid: true };
   }
 
   function canChangeBenefitTemplate(benefit, referencedLevels) {
-    if ((benefit && benefit.tiers || []).length) return { allowed: false, reason: '请先清空参数档位后再切换模板' };
+    if (benefit && Object.keys(benefit.values || {}).length) return { allowed: false, reason: '请先清空规则参数后再切换模板' };
     if ((referencedLevels || []).length) return { allowed: false, reason: '请先移除等级引用后再切换模板' };
     return { allowed: true };
   }
@@ -196,14 +164,12 @@
   function canUpdateBenefitRule(original, next, referencedLevels, options) {
     const references = referencedLevels || [];
     const templateWasCleared = Boolean(options && options.templateWasCleared);
-    const usedTierIds = options && options.usedTierIds || [];
     if (references.length && original.kind !== next.kind) return { allowed: false, reason: '该权益已被等级引用，请先解除引用后再修改权益形态' };
-    if (original.templateId !== next.templateId && !templateWasCleared && ((original.tiers || []).length || references.length)) {
-      return { allowed: false, reason: '请先解除等级引用并清空参数档位后再切换模板' };
+    if (references.length && original.templateId !== next.templateId) return { allowed: false, reason: '该权益已被等级引用，请先解除引用后再切换模板' };
+    if (original.templateId !== next.templateId && !templateWasCleared && (Object.keys(original.values || {}).length || references.length)) {
+      return { allowed: false, reason: '请先解除等级引用并清空规则参数后再切换模板' };
     }
-    if (next.kind === 'parameterized' && !(next.tiers || []).length) return { allowed: false, reason: '参数化权益至少保留一个参数档位' };
-    const nextTierIds = new Set((next.tiers || []).map((tier) => tier.id));
-    if (usedTierIds.some((tierId) => !nextTierIds.has(tierId))) return { allowed: false, reason: '档位正在被等级使用，不能删除' };
+    if (next.kind === 'parameterized' && !validateBenefitConfiguration(next.templateId, next.values || {}).valid) return { allowed: false, reason: '请填写完整有效的规则参数' };
     return { allowed: true };
   }
 
@@ -233,7 +199,7 @@
     (values.items || []).forEach((item) => {
       const categories = item.categories || [];
       if (!categories.length || categories.some((category) => !businessCategories.includes(category))) errors.push('请选择有效业务品类');
-      if (categories.some((category) => usedCategories.has(category))) errors.push('同一档位内业务品类不可重复');
+      if (categories.some((category) => usedCategories.has(category))) errors.push('同一权益内业务品类不可重复');
       categories.forEach((category) => usedCategories.add(category));
       if (!positiveNumber(item.rate, maxRate)) errors.push(`${rateLabel}必须大于0且不超过${maxRate}%`);
       if (positiveNumber(item.rate, maxRate) && !hasAtMostTwoDecimals(item.rate)) errors.push('比例最多保留两位小数');
@@ -344,8 +310,19 @@
     return history;
   }
 
-  function mergeBenefitSelection(current, selected) {
-    return [...new Set([...(current || []), ...(selected || [])])];
+  function mergeBenefitSelection(current, selected, benefits) {
+    const result = [...new Set(current || [])];
+    (selected || []).forEach((benefitId) => {
+      const benefit = (benefits || []).find((item) => item.id === benefitId);
+      if (benefit && benefit.kind === 'parameterized' && benefit.templateId) {
+        for (let index = result.length - 1; index >= 0; index -= 1) {
+          const existing = (benefits || []).find((item) => item.id === result[index]);
+          if (existing && existing.kind === 'parameterized' && existing.templateId === benefit.templateId) result.splice(index, 1);
+        }
+      }
+      if (!result.includes(benefitId)) result.push(benefitId);
+    });
+    return result;
   }
 
   function nextBenefitId(records) {
@@ -505,7 +482,6 @@
     appendBenefitChangeLog,
     canAssignBenefit,
     canChangeBenefitTemplate,
-    canRemoveBenefitTier,
     canUpdateBenefitRule,
     createBenefit,
     createPublishPreview,
@@ -513,7 +489,6 @@
     changeIssuanceStatus,
     deleteBenefit,
     getBusinessCategories,
-    getBenefitTier,
     getRuleTemplates,
     getAdminMenu,
     mergeBenefitSelection,
@@ -521,16 +496,15 @@
     openStoreOwner,
     renameStore,
     resolveLevelBenefitIds,
-    resolveLevelTierSelections,
     retryCalculation,
     reorderBenefit,
     runMigration,
     sortBenefits,
-    summarizeBenefitTier,
+    summarizeBenefitConfiguration,
     updateBenefit,
     upsertRegistration,
     validateBenefitConfiguration,
-    validateLevelTierSelections,
+    validateLevelBenefitSelection,
     validateRule,
   };
 })(globalThis);

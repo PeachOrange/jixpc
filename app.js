@@ -30,51 +30,56 @@
   const menu = model.getAdminMenu()[0];
   const state = {
     section: 'levels', tab: 'levels', version: '1.0', autoUpgrade: true, migrationStep: 0,
-    search: '', menuOpen: true, editingLevel: null, levelMode: 'edit', levelDraftRow: null, levelBenefitDraft: [], levelTierSelectionDraft: {}, benefitPickerSelected: new Set(),
-    editingBenefit: null, benefitMode: 'view', benefitEditorOpen: false, benefitTierDraft: [], benefitTemplateDraft: '', benefitTemplateWasCleared: false, benefitKindFilter: 'all', benefitTemplateFilter: 'all', confirmAction: null, dragBenefitId: null,
+    search: '', menuOpen: true, editingLevel: null, levelMode: 'edit', levelDraftRow: null, levelBenefitDraft: [], benefitPickerSelected: new Set(),
+    editingBenefit: null, benefitMode: 'view', benefitEditorOpen: false, benefitValuesDraft: {}, benefitTemplateDraft: '', benefitTemplateWasCleared: false, benefitKindFilter: 'all', benefitTemplateFilter: 'all', confirmAction: null, dragBenefitId: null,
     editingIssuance: null, issuanceAction: null, pendingChanges: 3,
     agentDetailId: null, agentDetailTab: 'profile', editingStoreId: null, editingContentId: null,
   };
 
   const sectionTabs = {
     owners: [{ id: 'owners', name: '店主列表' }, { id: 'registrations', name: '开店登记', badge: 3 }],
-    levels: [{ id: 'levels', name: '等级规则' }, { id: 'benefits', name: '权益库' }, { id: 'templates', name: '权益规则模板' }],
+    levels: [{ id: 'levels', name: '等级规则' }, { id: 'benefits', name: '权益库' }, { id: 'templates', name: '权益规则' }],
     content: [{ id: 'content', name: '培训素材内容管理' }],
     tasks: [{ id: 'logs', name: '计算日志', badge: 3 }, { id: 'migration', name: '存量迁移' }],
   };
 
   const levels = [
-    { level: 1, identity: '普通用户', condition: '注册后默认等级', relation: '固定等级', commission: '无店铺收益', benefitIds: [], tierSelections: {}, benefits: '基础回收服务', enabled: true, targets: [0, 0, 0], upgradeMode: '不适用' },
-    { level: 2, identity: '成长店主', condition: '店铺客户 ≥ 3', relation: '全部满足', commission: '方案1.0', benefitIds: ['B01', 'B02', 'B16', 'B05'], tierSelections: { B01: 'T1', B02: 'T1', B16: 'T1' }, benefits: '新人成交奖励、品类订单佣金、品类二级订单佣金、基础培训', enabled: true, targets: [3, 0, 0], upgradeMode: '自动升级' },
-    { level: 3, identity: '轻享店主', condition: '店铺客户5｜店铺收益¥2,000｜团队店主6', relation: '全部满足', commission: '方案1.1', benefitIds: ['B06'], tierSelections: {}, benefits: '深度线上运营培训', enabled: true, targets: [5, 2000, 6], upgradeMode: '自动升级' },
-    { level: 4, identity: '轻享店主', condition: '店铺客户12｜店铺收益¥5,000｜团队店主12', relation: '全部满足', commission: '方案1.2', benefitIds: [], tierSelections: {}, benefits: '本级无新增权益', enabled: true, targets: [12, 5000, 12], upgradeMode: '自动升级' },
-    { level: 5, identity: '轻享店主', condition: '店铺客户20｜店铺收益¥10,000｜团队店主20', relation: '全部满足', commission: '方案1.2', benefitIds: ['B03', 'B08'], tierSelections: { B01: 'T2', B03: 'T1' }, benefits: '管理收益、线上招募方案', enabled: true, targets: [20, 10000, 20], upgradeMode: '自动升级' },
-    { level: 6, identity: '星享店主', condition: '店铺客户30｜店铺收益¥18,000｜团队店主35', relation: '全部满足', commission: '方案1.5', benefitIds: ['B09'], tierSelections: {}, benefits: '店主自媒体 IP 打造', enabled: true, targets: [30, 18000, 35], upgradeMode: '自动升级' },
-    { level: 7, identity: '星享店主', condition: '店铺客户40｜店铺收益¥28,000｜团队店主55', relation: '全部满足', commission: '方案1.8', benefitIds: ['B10'], tierSelections: {}, benefits: '线下宣传与合作方案', enabled: true, targets: [40, 28000, 55], upgradeMode: '自动升级' },
-    { level: 8, identity: '星享店主', condition: '店铺客户50｜店铺收益¥40,000｜团队店主80', relation: '全部满足', commission: '方案2.0', benefitIds: ['B07', 'B11'], tierSelections: { B02: 'T2', B16: 'T2', B07: 'T1' }, benefits: '视频素材下载、进阶交流群', enabled: true, targets: [50, 40000, 80], upgradeMode: '自动升级' },
-    { level: 9, identity: '超级店主', condition: '店铺客户65｜店铺收益¥65,000｜团队店主120', relation: '全部满足', commission: '方案2.1', benefitIds: ['B04'], tierSelections: { B04: 'T1' }, benefits: '团队佣金', enabled: true, targets: [65, 65000, 120], upgradeMode: '自动升级' },
-    { level: 10, identity: '超级店主', condition: '店铺客户90｜店铺收益¥100,000｜团队店主180', relation: '全部满足', commission: '方案2.2', benefitIds: ['B15'], tierSelections: { B15: 'T1' }, benefits: '鉴定服务', enabled: true, targets: [90, 100000, 180], upgradeMode: '自动升级' },
-    { level: 11, identity: '超级店主', condition: '店铺客户120｜店铺收益¥160,000｜团队店主260', relation: '全部满足', commission: '方案2.3', benefitIds: ['B12', 'B13'], tierSelections: { B07: 'T2' }, benefits: '核心交流群、专属客服', enabled: true, targets: [120, 160000, 260], upgradeMode: '自动升级' },
-    { level: 12, identity: '超级合伙人', condition: '满足资格后线下联系', relation: '线下审核', commission: '专属方案', benefitIds: ['B14'], tierSelections: { B15: 'T2' }, benefits: '最高等级店主证书', enabled: true, targets: [0, 0, 0], upgradeMode: '线下联系' },
+    { level: 1, identity: '普通用户', condition: '注册后默认等级', relation: '固定等级', commission: '无店铺收益', benefitIds: [], benefits: '基础回收服务', enabled: true, targets: [0, 0, 0], upgradeMode: '不适用' },
+    { level: 2, identity: '成长店主', condition: '店铺客户 ≥ 3', relation: '全部满足', commission: '方案1.0', benefitIds: ['B01', 'B02', 'B16', 'B05'], benefits: '新人成交奖励 10 元、品类订单佣金（基础）、品类二级订单佣金（基础）、基础培训', enabled: true, targets: [3, 0, 0], upgradeMode: '自动升级' },
+    { level: 3, identity: '轻享店主', condition: '店铺客户5｜店铺收益¥2,000｜团队店主6', relation: '全部满足', commission: '方案1.1', benefitIds: ['B01', 'B02', 'B16', 'B05', 'B06'], benefits: '新人奖励、基础直属佣金、基础二级佣金、基础培训、深度运营培训', enabled: true, targets: [5, 2000, 6], upgradeMode: '自动升级' },
+    { level: 4, identity: '轻享店主', condition: '店铺客户12｜店铺收益¥5,000｜团队店主12', relation: '全部满足', commission: '方案1.2', benefitIds: ['B01', 'B02', 'B16', 'B05', 'B06'], benefits: '新人奖励、基础直属佣金、基础二级佣金、基础培训、深度运营培训', enabled: true, targets: [12, 5000, 12], upgradeMode: '自动升级' },
+    { level: 5, identity: '轻享店主', condition: '店铺客户20｜店铺收益¥10,000｜团队店主20', relation: '全部满足', commission: '方案1.2', benefitIds: ['B02', 'B16', 'B05', 'B06', 'B17', 'B03', 'B08'], benefits: '基础直属佣金、基础二级佣金、基础培训、深度运营培训、新人奖励 20 元、管理收益、线上招募方案', enabled: true, targets: [20, 10000, 20], upgradeMode: '自动升级' },
+    { level: 6, identity: '星享店主', condition: '店铺客户30｜店铺收益¥18,000｜团队店主35', relation: '全部满足', commission: '方案1.5', benefitIds: ['B02', 'B16', 'B05', 'B06', 'B17', 'B03', 'B08', 'B09'], benefits: 'LV5 完整权益、店主自媒体 IP 打造', enabled: true, targets: [30, 18000, 35], upgradeMode: '自动升级' },
+    { level: 7, identity: '星享店主', condition: '店铺客户40｜店铺收益¥28,000｜团队店主55', relation: '全部满足', commission: '方案1.8', benefitIds: ['B02', 'B16', 'B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10'], benefits: 'LV6 完整权益、线下宣传与合作方案', enabled: true, targets: [40, 28000, 55], upgradeMode: '自动升级' },
+    { level: 8, identity: '星享店主', condition: '店铺客户50｜店铺收益¥40,000｜团队店主80', relation: '全部满足', commission: '方案2.0', benefitIds: ['B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10', 'B18', 'B19', 'B07', 'B11'], benefits: '高阶直属佣金、高阶二级佣金、每日 1 条视频素材、进阶交流群等完整权益', enabled: true, targets: [50, 40000, 80], upgradeMode: '自动升级' },
+    { level: 9, identity: '超级店主', condition: '店铺客户65｜店铺收益¥65,000｜团队店主120', relation: '全部满足', commission: '方案2.1', benefitIds: ['B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10', 'B18', 'B19', 'B07', 'B11', 'B04'], benefits: 'LV8 完整权益、团队佣金', enabled: true, targets: [65, 65000, 120], upgradeMode: '自动升级' },
+    { level: 10, identity: '超级店主', condition: '店铺客户90｜店铺收益¥100,000｜团队店主180', relation: '全部满足', commission: '方案2.2', benefitIds: ['B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10', 'B18', 'B19', 'B07', 'B11', 'B04', 'B15'], benefits: 'LV9 完整权益、鉴定服务（每月 5 次）', enabled: true, targets: [90, 100000, 180], upgradeMode: '自动升级' },
+    { level: 11, identity: '超级店主', condition: '店铺客户120｜店铺收益¥160,000｜团队店主260', relation: '全部满足', commission: '方案2.3', benefitIds: ['B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10', 'B18', 'B19', 'B11', 'B04', 'B15', 'B20', 'B12', 'B13'], benefits: '每日 2 条视频素材、核心交流群、专属客服等完整权益', enabled: true, targets: [120, 160000, 260], upgradeMode: '自动升级' },
+    { level: 12, identity: '超级合伙人', condition: '满足资格后线下联系', relation: '线下审核', commission: '专属方案', benefitIds: ['B05', 'B06', 'B17', 'B03', 'B08', 'B09', 'B10', 'B18', 'B19', 'B11', 'B04', 'B20', 'B12', 'B13', 'B21', 'B14'], benefits: '每月 10 次鉴定、最高等级店主证书等完整权益', enabled: true, targets: [0, 0, 0], upgradeMode: '线下联系' },
   ];
 
   let benefits = [
-    { id: 'B01', name: '新人成交奖励', category: '收益类', icon: '新', order: 10, kind: 'parameterized', templateId: 'newcomer-reward', tiers: [{ id: 'T1', name: '档位 1', values: { amount: 10 } }, { id: 'T2', name: '档位 2', values: { amount: 20 } }], history: [{ action: '创建权益', operator: '陈运营', time: '2026-08-12 09:20', effective: '实时生效' }], shortDescription: '平台新用户首笔有效回收订单奖励', detailDescription: '首次成功完成回收交易后发放，取消或退款不撤销。', description: '首笔有效回收订单奖励', status: '生效中' },
-    { id: 'B02', name: '品类订单佣金', category: '收益类', icon: '佣', order: 20, kind: 'parameterized', templateId: 'category-commission', tiers: [{ id: 'T1', name: '档位 1', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机'], rate: 15, capType: 'capped', capAmount: 75 }, { categories: ['普鞋'], rate: 15, capType: 'unlimited' }, { categories: ['旧衣'], rate: 50, capType: 'unlimited' }] } }, { id: 'T2', name: '档位 2', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机', '旧书'], rate: 20, capType: 'capped', capAmount: 100 }] } }], history: [], shortDescription: '按品类设置直属店主订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '按业务品类配置直属订单佣金', status: '生效中' },
-    { id: 'B16', name: '品类二级订单佣金', category: '收益类', icon: '二', order: 25, kind: 'parameterized', templateId: 'category-secondary-commission', tiers: [{ id: 'T1', name: '档位 1', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机'], rate: 5, capType: 'capped', capAmount: 25 }, { categories: ['普鞋'], rate: 5, capType: 'unlimited' }, { categories: ['旧衣'], rate: 10, capType: 'unlimited' }] } }, { id: 'T2', name: '档位 2', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机', '旧书'], rate: 5, capType: 'capped', capAmount: 25 }] } }], history: [], shortDescription: '按品类设置上级店主二级订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '按业务品类配置二级订单佣金', status: '生效中' },
-    { id: 'B03', name: '开通店主与管理收益', category: '收益类', icon: '管', order: 30, kind: 'parameterized', templateId: 'management-income', tiers: [{ id: 'T1', name: '档位 1', values: { rate: 5, capType: 'capped', capAmount: 50 } }], history: [], shortDescription: '直接开通一级下属店主的订单管理收益', detailDescription: '按直属一级下属店主订单最终回收成交价计算。', description: '一级下属店主管理收益', status: '生效中' },
-    { id: 'B04', name: '团队佣金', category: '收益类', icon: '团', order: 40, kind: 'parameterized', templateId: 'team-commission', tiers: [{ id: 'T1', name: '档位 1', values: { rate: 3, capType: 'capped', capAmount: 50 } }], history: [], shortDescription: '系统固定团队范围内的回收订单佣金', detailDescription: '运营只配置比例和上限，范围由系统固定。', description: '团队回收订单佣金', status: '生效中' },
-    { id: 'B05', name: '线上回收基础培训', category: '运营类', icon: '基', order: 10, kind: 'fixed', tiers: [], history: [], shortDescription: '回收基础知识与开店入门培训', detailDescription: '覆盖基础收单、客户沟通与平台操作。', description: '基础回收培训', status: '生效中' },
-    { id: 'B06', name: '深度线上运营培训', category: '运营类', icon: '深', order: 20, kind: 'fixed', tiers: [], history: [], shortDescription: '获客、转化与团队经营课程', detailDescription: '完整的获客、转化和团队经营线上课程。', description: '深度运营培训', status: '生效中' },
-    { id: 'B07', name: '视频素材下载', category: '运营类', icon: '视', order: 30, kind: 'parameterized', templateId: 'daily-video', tiers: [{ id: 'T1', name: '档位 1', values: { dailyQuota: 1 } }, { id: 'T2', name: '档位 2', values: { dailyQuota: 2 } }], history: [], shortDescription: '按自然日下载可直接发布的视频素材', detailDescription: '每天可下载1或2条，24:00清零不结转。', description: '每日视频下载额度', status: '生效中' },
-    { id: 'B08', name: '线上招募店主方案', category: '运营类', icon: '招', order: 40, kind: 'fixed', tiers: [], history: [], shortDescription: '线上招募店主的方法与物料', detailDescription: '提供招募流程、沟通话术和常用物料。', description: '线上招募方案', status: '生效中' },
-    { id: 'B09', name: '店主自媒体 IP 打造', category: '运营类', icon: 'IP', order: 50, kind: 'fixed', tiers: [], history: [], shortDescription: '店主个人内容定位与账号打造', detailDescription: '提供账号定位、选题与内容表达方法。', description: '自媒体 IP 打造', status: '生效中' },
-    { id: 'B10', name: '线下宣传与合作方案', category: '运营类', icon: '线', order: 60, kind: 'fixed', tiers: [], history: [], shortDescription: '线下推广与异业合作执行方案', detailDescription: '包含社区宣传、门店合作和活动执行参考。', description: '线下合作方案', status: '生效中' },
-    { id: 'B11', name: '公司进阶店主交流群', category: '运营类', icon: '进', order: 70, kind: 'fixed', tiers: [], history: [], shortDescription: '进阶店主运营交流社群', detailDescription: '提供阶段性经营交流和官方运营信息。', description: '进阶店主交流群', status: '生效中' },
-    { id: 'B12', name: '公司核心店主交流群', category: '运营类', icon: '核', order: 80, kind: 'fixed', tiers: [], history: [], shortDescription: '核心店主专属经营交流社群', detailDescription: '面向核心店主的深度交流和专项信息。', description: '核心店主交流群', status: '生效中' },
-    { id: 'B13', name: '店主专属客服', category: '运营类', icon: '服', order: 90, kind: 'fixed', tiers: [], history: [], shortDescription: '专属客服与经营问题支持', detailDescription: '通过专属客服通道获得业务支持。', description: '店主专属客服', status: '生效中' },
-    { id: 'B14', name: '最高等级店主证书', category: '证书类', icon: '证', order: 10, kind: 'fixed', tiers: [], history: [], shortDescription: '最高等级店主身份荣誉证书', detailDescription: '达到最高等级后获得专属身份荣誉证书。', description: '最高等级荣誉证书', status: '生效中' },
-    { id: 'B15', name: '鉴定服务', category: '鉴定类', icon: '鉴', order: 10, kind: 'parameterized', templateId: 'monthly-appraisal', tiers: [{ id: 'T1', name: '档位 1', values: { monthlyQuota: 5 } }, { id: 'T2', name: '档位 2', values: { monthlyQuota: 10 } }], history: [], shortDescription: '按自然月提供专属鉴定服务次数', detailDescription: '月末清零不结转，等级变化次日生效。', description: '每月鉴定服务次数', status: '生效中' },
+    { id: 'B01', name: '新人成交奖励 10 元', category: '收益类', icon: '新', order: 10, kind: 'parameterized', templateId: 'newcomer-reward', values: { amount: 10 }, history: [{ action: '创建权益', operator: '陈运营', time: '2026-08-12 09:20', effective: '实时生效' }], shortDescription: '新用户首笔有效回收订单奖励 10 元', detailDescription: '首次成功完成回收交易后发放，取消或退款不撤销。', description: '首笔有效回收订单奖励 10 元', status: '生效中' },
+    { id: 'B17', name: '新人成交奖励 20 元', category: '收益类', icon: '新', order: 15, kind: 'parameterized', templateId: 'newcomer-reward', values: { amount: 20 }, history: [], shortDescription: '新用户首笔有效回收订单奖励 20 元', detailDescription: '首次成功完成回收交易后发放，取消或退款不撤销。', description: '首笔有效回收订单奖励 20 元', status: '生效中' },
+    { id: 'B02', name: '品类订单佣金（基础）', category: '收益类', icon: '佣', order: 20, kind: 'parameterized', templateId: 'category-commission', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机'], rate: 15, capType: 'capped', capAmount: 75 }, { categories: ['普鞋'], rate: 15, capType: 'unlimited' }, { categories: ['旧衣'], rate: 50, capType: 'unlimited' }] }, history: [], shortDescription: '基础品类直属店主订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '基础品类直属订单佣金', status: '生效中' },
+    { id: 'B18', name: '品类订单佣金（高阶）', category: '收益类', icon: '佣', order: 22, kind: 'parameterized', templateId: 'category-commission', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机', '旧书'], rate: 20, capType: 'capped', capAmount: 100 }] }, history: [], shortDescription: '高阶品类直属店主订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '高阶品类直属订单佣金', status: '生效中' },
+    { id: 'B16', name: '品类二级订单佣金（基础）', category: '收益类', icon: '二', order: 25, kind: 'parameterized', templateId: 'category-secondary-commission', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机'], rate: 5, capType: 'capped', capAmount: 25 }, { categories: ['普鞋'], rate: 5, capType: 'unlimited' }, { categories: ['旧衣'], rate: 10, capType: 'unlimited' }] }, history: [], shortDescription: '基础品类上级店主二级订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '基础品类二级订单佣金', status: '生效中' },
+    { id: 'B19', name: '品类二级订单佣金（高阶）', category: '收益类', icon: '二', order: 27, kind: 'parameterized', templateId: 'category-secondary-commission', values: { items: [{ categories: ['正品鞋', '正品服', '废旧手机', '旧书'], rate: 5, capType: 'capped', capAmount: 25 }] }, history: [], shortDescription: '高阶品类上级店主二级订单佣金', detailDescription: '计佣基数固定为最终回收成交价，可独立设置单笔封顶。', description: '高阶品类二级订单佣金', status: '生效中' },
+    { id: 'B03', name: '开通店主与管理收益', category: '收益类', icon: '管', order: 30, kind: 'parameterized', templateId: 'management-income', values: { rate: 5, capType: 'capped', capAmount: 50 }, history: [], shortDescription: '直接开通一级下属店主的订单管理收益', detailDescription: '按直属一级下属店主订单最终回收成交价计算。', description: '一级下属店主管理收益', status: '生效中' },
+    { id: 'B04', name: '团队佣金', category: '收益类', icon: '团', order: 40, kind: 'parameterized', templateId: 'team-commission', values: { rate: 3, capType: 'capped', capAmount: 50 }, history: [], shortDescription: '系统固定团队范围内的回收订单佣金', detailDescription: '运营只配置比例和上限，范围由系统固定。', description: '团队回收订单佣金', status: '生效中' },
+    { id: 'B05', name: '线上回收基础培训', category: '运营类', icon: '基', order: 10, kind: 'fixed', values: {}, history: [], shortDescription: '回收基础知识与开店入门培训', detailDescription: '覆盖基础收单、客户沟通与平台操作。', description: '基础回收培训', status: '生效中' },
+    { id: 'B06', name: '深度线上运营培训', category: '运营类', icon: '深', order: 20, kind: 'fixed', values: {}, history: [], shortDescription: '获客、转化与团队经营课程', detailDescription: '完整的获客、转化和团队经营线上课程。', description: '深度运营培训', status: '生效中' },
+    { id: 'B07', name: '视频素材下载（每日 1 条）', category: '运营类', icon: '视', order: 30, kind: 'parameterized', templateId: 'daily-video', values: { dailyQuota: 1 }, history: [], shortDescription: '每日下载 1 条可直接发布的视频素材', detailDescription: '每天可下载1条，24:00清零不结转。', description: '每日 1 条视频下载额度', status: '生效中' },
+    { id: 'B20', name: '视频素材下载（每日 2 条）', category: '运营类', icon: '视', order: 35, kind: 'parameterized', templateId: 'daily-video', values: { dailyQuota: 2 }, history: [], shortDescription: '每日下载 2 条可直接发布的视频素材', detailDescription: '每天可下载2条，24:00清零不结转。', description: '每日 2 条视频下载额度', status: '生效中' },
+    { id: 'B08', name: '线上招募店主方案', category: '运营类', icon: '招', order: 40, kind: 'fixed', values: {}, history: [], shortDescription: '线上招募店主的方法与物料', detailDescription: '提供招募流程、沟通话术和常用物料。', description: '线上招募方案', status: '生效中' },
+    { id: 'B09', name: '店主自媒体 IP 打造', category: '运营类', icon: 'IP', order: 50, kind: 'fixed', values: {}, history: [], shortDescription: '店主个人内容定位与账号打造', detailDescription: '提供账号定位、选题与内容表达方法。', description: '自媒体 IP 打造', status: '生效中' },
+    { id: 'B10', name: '线下宣传与合作方案', category: '运营类', icon: '线', order: 60, kind: 'fixed', values: {}, history: [], shortDescription: '线下推广与异业合作执行方案', detailDescription: '包含社区宣传、门店合作和活动执行参考。', description: '线下合作方案', status: '生效中' },
+    { id: 'B11', name: '公司进阶店主交流群', category: '运营类', icon: '进', order: 70, kind: 'fixed', values: {}, history: [], shortDescription: '进阶店主运营交流社群', detailDescription: '提供阶段性经营交流和官方运营信息。', description: '进阶店主交流群', status: '生效中' },
+    { id: 'B12', name: '公司核心店主交流群', category: '运营类', icon: '核', order: 80, kind: 'fixed', values: {}, history: [], shortDescription: '核心店主专属经营交流社群', detailDescription: '面向核心店主的深度交流和专项信息。', description: '核心店主交流群', status: '生效中' },
+    { id: 'B13', name: '店主专属客服', category: '运营类', icon: '服', order: 90, kind: 'fixed', values: {}, history: [], shortDescription: '专属客服与经营问题支持', detailDescription: '通过专属客服通道获得业务支持。', description: '店主专属客服', status: '生效中' },
+    { id: 'B14', name: '最高等级店主证书', category: '证书类', icon: '证', order: 10, kind: 'fixed', values: {}, history: [], shortDescription: '最高等级店主身份荣誉证书', detailDescription: '达到最高等级后获得专属身份荣誉证书。', description: '最高等级荣誉证书', status: '生效中' },
+    { id: 'B15', name: '鉴定服务（每月 5 次）', category: '鉴定类', icon: '鉴', order: 10, kind: 'parameterized', templateId: 'monthly-appraisal', values: { monthlyQuota: 5 }, history: [], shortDescription: '每月提供 5 次专属鉴定服务', detailDescription: '月末清零不结转，等级变化次日生效。', description: '每月 5 次鉴定服务', status: '生效中' },
+    { id: 'B21', name: '鉴定服务（每月 10 次）', category: '鉴定类', icon: '鉴', order: 20, kind: 'parameterized', templateId: 'monthly-appraisal', values: { monthlyQuota: 10 }, history: [], shortDescription: '每月提供 10 次专属鉴定服务', detailDescription: '月末清零不结转，等级变化次日生效。', description: '每月 10 次鉴定服务', status: '生效中' },
   ];
 
   const benefitAuditLogs = [];
@@ -238,7 +243,7 @@
         const referenced = references.length > 0;
         const templateName = templateNames.get(row.templateId);
         const ruleSummary = row.kind === 'parameterized'
-          ? templateName && row.tiers.length ? `<strong>参数化权益 · ${templateName}</strong><small>${row.tiers.length} 个参数档位 · ${row.tiers.map((tier) => tier.name).join(' / ')}</small>` : '<strong class="warning-text">参数化权益</strong><small>未配置，不可分配</small>'
+          ? templateName && model.canAssignBenefit(row).allowed ? `<strong>参数化权益规则 · ${templateName}</strong><small>${model.summarizeBenefitConfiguration(row)}</small>` : '<strong class="warning-text">参数化权益规则</strong><small>未配置，不可分配</small>'
           : '<strong>固定权益</strong><small>无需规则</small>';
         return `<div class="table-row benefit-table" draggable="true" data-benefit-row="${row.id}" data-benefit-drag="${row.id}" data-benefit-category="${row.category}"><button type="button" class="drag-handle" aria-label="拖拽调整${row.name}排序" title="仅可在${row.category}内拖拽排序">⋮⋮</button><span class="benefit-name"><i>${row.icon || '权'}</i><span><strong>${row.name}</strong><small>${row.id} · ${row.shortDescription || row.description}</small></span></span><span><strong>${row.order}</strong><small>展示排序</small></span><span class="rule-config-summary">${ruleSummary}</span><span class="reference-summary">${referenced ? `<strong>${references.slice(0, 4).join('、')}${references.length > 4 ? '等' : ''}</strong><small>当前等级引用</small>` : '<strong>未引用</strong><small>可停用或删除</small>'}</span>${pill(row.status)}<div class="row-actions"><button data-view-benefit="${row.id}">查看</button><button data-edit-benefit="${row.id}">编辑</button><button data-toggle-benefit="${row.id}" ${referenced && row.status === '生效中' ? 'class="locked-action" title="当前等级引用中"' : ''}>${row.status === '生效中' ? '停用' : '恢复'}</button><button class="danger-link ${referenced ? 'locked-action' : ''}" data-delete-benefit="${row.id}" ${referenced ? 'title="当前等级引用中"' : ''}>删除</button></div></div>`;
       }).join('')}`;
@@ -335,9 +340,8 @@
     state.editingLevel = null;
     state.levelDraftRow = null;
     state.levelMode = 'edit';
-    state.levelTierSelectionDraft = {};
     state.editingBenefit = null;
-    state.benefitTierDraft = [];
+    state.benefitValuesDraft = {};
     state.benefitTemplateDraft = '';
     state.benefitTemplateWasCleared = false;
     state.editingIssuance = null;
@@ -349,29 +353,23 @@
     const names = ['店铺客户', '店铺收益', '团队店主'];
     const units = ['人', '元', '人'];
     const upgradeMode = row.upgradeMode || '自动升级';
-    const inheritedIds = model.resolveLevelBenefitIds(levels, state.editingLevel - 1);
-    const allIds = [...new Set([...inheritedIds, ...state.levelBenefitDraft])];
-    const benefitRows = allIds.map((id) => {
+    const benefitRows = state.levelBenefitDraft.map((id) => {
       const item = benefits.find((benefit) => benefit.id === id);
       if (!item) return '';
-      const isCurrent = state.levelBenefitDraft.includes(id);
-      const tierControl = item.kind === 'parameterized'
-        ? `<select class="level-benefit-tier-select" data-level-tier-selection="${id}" aria-label="${item.name}档位">${item.tiers.map((tier) => `<option value="${tier.id}" ${state.levelTierSelectionDraft[id] === tier.id ? 'selected' : ''}>${tier.name}｜${model.summarizeBenefitTier(item, tier)}</option>`).join('')}</select>`
-        : '<span class="fixed-tier-copy">无需档位</span>';
-      return `<article class="level-benefit-row"><div class="level-benefit-name"><strong>${item.name}</strong><small>${isCurrent ? '本级新增' : '继承权益'}</small></div>${tierControl}${isCurrent ? `<button type="button" class="level-benefit-remove" data-remove-level-benefit="${id}" aria-label="移除${item.name}"><span aria-hidden="true">×</span><span>移除</span></button>` : '<span></span>'}</article>`;
+      const parameterSummary = item.kind === 'parameterized' ? model.summarizeBenefitConfiguration(item) : '固定权益 · 无规则参数';
+      return `<article class="level-benefit-row"><div class="level-benefit-name"><strong>${item.name}</strong><small>当前等级权益</small></div><span class="level-benefit-parameter-summary">${parameterSummary}</span><button type="button" class="level-benefit-remove" data-remove-level-benefit="${id}" aria-label="移除${item.name}"><span aria-hidden="true">×</span><span>移除</span></button></article>`;
     }).join('');
-    drawerBody.innerHTML = `<section class="form-section"><div class="form-section-title"><strong>升级条件</strong><span>固定三类经营结果</span></div>${state.levelMode === 'create' ? `<div class="field"><label>等级身份</label><input data-level-identity value="${row.identity || ''}" placeholder="请输入等级身份"></div>` : ''}${names.map((name, index) => `<div class="field"><label>${name}</label><div class="field-row"><button class="condition-switch active" type="button" data-condition-toggle="${index}" aria-pressed="true"><i></i><span>已启用</span></button><label class="input-with-unit"><input type="number" min="0" value="${row.targets[index]}" data-level-target="${index}" aria-label="${name}门槛"><span>${units[index]}</span></label></div></div>`).join('')}<div class="field"><label>条件关系</label><select id="level-relation"><option ${row.relation === '全部满足' ? 'selected' : ''}>全部满足</option><option ${row.relation === '任一满足' ? 'selected' : ''}>任一满足</option></select></div><div class="field"><label>升级方式</label><select id="level-upgrade-mode"><option ${upgradeMode === '自动升级' ? 'selected' : ''}>自动升级</option><option ${upgradeMode === '线下联系' ? 'selected' : ''}>线下联系</option></select></div></section><section class="form-section"><div class="form-section-title"><strong>等级权益</strong><span>继承权益可在本级覆盖档位 · LV${state.editingLevel}</span></div><div class="level-benefit-list">${benefitRows}</div><button type="button" class="add-benefit-button" data-add-level-benefit>＋ 添加本级权益</button></section>`;
+    drawerBody.innerHTML = `<section class="form-section"><div class="form-section-title"><strong>升级条件</strong><span>固定三类经营结果</span></div>${state.levelMode === 'create' ? `<div class="field"><label>等级身份</label><input data-level-identity value="${row.identity || ''}" placeholder="请输入等级身份"></div>` : ''}${names.map((name, index) => `<div class="field"><label>${name}</label><div class="field-row"><button class="condition-switch active" type="button" data-condition-toggle="${index}" aria-pressed="true"><i></i><span>已启用</span></button><label class="input-with-unit"><input type="number" min="0" value="${row.targets[index]}" data-level-target="${index}" aria-label="${name}门槛"><span>${units[index]}</span></label></div></div>`).join('')}<div class="field"><label>条件关系</label><select id="level-relation"><option ${row.relation === '全部满足' ? 'selected' : ''}>全部满足</option><option ${row.relation === '任一满足' ? 'selected' : ''}>任一满足</option></select></div><div class="field"><label>升级方式</label><select id="level-upgrade-mode"><option ${upgradeMode === '自动升级' ? 'selected' : ''}>自动升级</option><option ${upgradeMode === '线下联系' ? 'selected' : ''}>线下联系</option></select></div></section><section class="form-section"><div class="form-section-title"><strong>等级权益</strong><span>当前等级独立配置 · 同一权益规则仅可选择一项</span></div><div class="level-benefit-list">${benefitRows}</div><button type="button" class="add-benefit-button" data-add-level-benefit>＋ 添加权益</button></section>`;
   }
 
   function openLevelDrawer(level, mode = 'edit') {
     const row = mode === 'create' ? {
-      level, identity: '', condition: '', relation: '全部满足', commission: '未配置', benefitIds: [], tierSelections: {}, benefits: '本级无新增权益', enabled: true, targets: [0, 0, 0], upgradeMode: '自动升级',
+      level, identity: '', condition: '', relation: '全部满足', commission: '未配置', benefitIds: [], benefits: '暂无权益', enabled: true, targets: [0, 0, 0], upgradeMode: '自动升级',
     } : levels.find((item) => item.level === level);
     state.editingLevel = level;
     state.levelMode = mode;
     state.levelDraftRow = mode === 'create' ? row : null;
     state.levelBenefitDraft = row.benefitIds.slice();
-    state.levelTierSelectionDraft = model.resolveLevelTierSelections(levels, benefits, level);
     openDrawer(`${mode === 'create' ? '新增' : '编辑'} LV${level} 规则`, '等级规则配置', '', `<button class="button" data-close-drawer>取消</button><button class="primary-button" data-save-level="${level}">${mode === 'create' ? '创建等级' : '保存修改'}</button>`);
     renderLevelDrawer();
   }
@@ -385,44 +383,42 @@
 
   function renderBenefitPicker() {
     const keyword = benefitPickerSearch.value.trim();
-    const inheritedIds = model.resolveLevelBenefitIds(levels, state.editingLevel - 1);
     const rows = benefits.filter((item) => !keyword || `${item.name}${item.category}`.includes(keyword));
     benefitPickerList.innerHTML = rows.map((item) => {
       const assignment = model.canAssignBenefit(item, state.editingLevel);
-      const inherited = inheritedIds.includes(item.id);
-      const disabledReason = inherited ? '已由低等级继承，无需重复添加' : item.status === '已暂停' ? '权益已暂停' : !assignment.allowed ? assignment.reason : '';
-      const assignmentCopy = item.kind === 'parameterized' ? '参数权益 · 请选择档位' : '固定权益 · 无需档位';
+      const disabledReason = item.status === '已暂停' ? '权益已暂停' : !assignment.allowed ? assignment.reason : '';
+      const assignmentCopy = item.kind === 'parameterized' ? `参数化权益规则 · ${model.summarizeBenefitConfiguration(item)}` : '固定权益 · 无规则参数';
       return `<label class="benefit-option ${disabledReason ? 'disabled' : ''}"><input type="checkbox" value="${item.id}" data-benefit-option ${state.benefitPickerSelected.has(item.id) ? 'checked' : ''} ${disabledReason ? 'disabled' : ''}><span><strong>${item.name}</strong><small>${item.category} · ${disabledReason || assignmentCopy}</small></span>${pill(disabledReason ? '不可添加' : item.status)}</label>`;
     }).join('');
     benefitPickerCount.textContent = `已选择 ${state.benefitPickerSelected.size} 项`;
   }
 
-  function capFields(values, prefix, readOnly, tierIndex) {
+  function capFields(values, prefix, readOnly) {
     const typeKey = prefix ? `${prefix}CapType` : 'capType';
     const amountKey = prefix ? `${prefix}CapAmount` : 'capAmount';
     const label = prefix === 'direct' ? '直属单笔上限' : prefix === 'upstream' ? '上级单笔上限' : '单笔上限';
-    return `<div class="field-row equal"><div class="field"><label>${label}</label><select data-tier-field="${typeKey}" data-tier-index="${tierIndex}" ${readOnly ? 'disabled' : ''}><option value="capped" ${values[typeKey] === 'capped' ? 'selected' : ''}>封顶</option><option value="unlimited" ${values[typeKey] === 'unlimited' ? 'selected' : ''}>上不封顶</option></select></div><div class="field"><label>封顶金额（元）</label><input type="number" min="0.01" step="0.01" data-tier-field="${amountKey}" data-tier-index="${tierIndex}" value="${values[amountKey] || ''}" ${values[typeKey] === 'unlimited' ? 'disabled' : ''} ${readOnly ? 'disabled' : ''}></div></div>`;
+    return `<div class="field-row equal"><div class="field"><label>${label}</label><select data-rule-field="${typeKey}" ${readOnly ? 'disabled' : ''}><option value="capped" ${values[typeKey] === 'capped' ? 'selected' : ''}>封顶</option><option value="unlimited" ${values[typeKey] === 'unlimited' ? 'selected' : ''}>上不封顶</option></select></div><div class="field"><label>封顶金额（元）</label><input type="number" min="0.01" step="0.01" data-rule-field="${amountKey}" value="${values[amountKey] || ''}" ${values[typeKey] === 'unlimited' ? 'disabled' : ''} ${readOnly ? 'disabled' : ''}></div></div>`;
   }
 
-  function renderCommissionItems(values, readOnly, tierIndex, templateId) {
+  function renderCommissionItems(values, readOnly, templateId) {
     const categories = model.getBusinessCategories();
     const items = values.items || [];
     const commissionLabel = templateId === 'category-commission' ? '直属店主佣金' : '上级店主佣金';
     const maxRate = templateId === 'category-commission' ? 100 : 50;
-    return `<div class="commission-items">${items.map((item, itemIndex) => `<article class="commission-item" data-commission-item data-tier-index="${tierIndex}" data-item-index="${itemIndex}">${readOnly ? '' : `<header><strong>品类计算项 ${itemIndex + 1}</strong><button type="button" class="danger-link" data-remove-commission-item="${tierIndex}:${itemIndex}">删除本项</button></header>`}<div class="field"><label>业务品类</label><div class="category-checks">${categories.map((category) => `<label><input type="checkbox" data-commission-category value="${category}" ${item.categories.includes(category) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>${category}</label>`).join('')}</div></div><div class="field"><label>${commissionLabel}（%）</label><input type="number" min="0.01" max="${maxRate}" step="0.01" data-commission-field="rate" value="${item.rate || ''}" ${readOnly ? 'disabled' : ''}></div>${capFields(item, '', readOnly, `${tierIndex}:${itemIndex}`)}</article>`).join('')}</div>${readOnly ? '' : `<button type="button" class="text-button" data-add-commission-item="${tierIndex}">＋ 添加品类计算项</button>`}`;
+    return `<div class="commission-items">${items.map((item, itemIndex) => `<article class="commission-item" data-commission-item data-item-index="${itemIndex}">${readOnly ? '' : `<header><strong>品类计算项 ${itemIndex + 1}</strong><button type="button" class="danger-link" data-remove-commission-item="${itemIndex}">删除本项</button></header>`}<div class="field"><label>业务品类</label><div class="category-checks">${categories.map((category) => `<label><input type="checkbox" data-commission-category value="${category}" ${item.categories.includes(category) ? 'checked' : ''} ${readOnly ? 'disabled' : ''}>${category}</label>`).join('')}</div></div><div class="field"><label>${commissionLabel}（%）</label><input type="number" min="0.01" max="${maxRate}" step="0.01" data-commission-field="rate" value="${item.rate || ''}" ${readOnly ? 'disabled' : ''}></div>${capFields(item, '', readOnly)}</article>`).join('')}</div>${readOnly ? '' : '<button type="button" class="text-button" data-add-commission-item>＋ 添加品类计算项</button>'}`;
   }
 
-  function renderTierValues(templateId, values, readOnly, tierIndex) {
-    if (['category-commission', 'category-secondary-commission'].includes(templateId)) return renderCommissionItems(values, readOnly, tierIndex, templateId);
-    if (templateId === 'newcomer-reward') return `<div class="field"><label>新人成交奖励（元）</label><input type="number" min="0.01" step="0.01" data-tier-field="amount" data-tier-index="${tierIndex}" value="${values.amount || ''}" ${readOnly ? 'disabled' : ''}></div>`;
-    if (templateId === 'daily-video') return `<div class="field"><label>每日下载条数</label><input type="number" min="1" step="1" data-tier-field="dailyQuota" data-tier-index="${tierIndex}" value="${values.dailyQuota || ''}" ${readOnly ? 'disabled' : ''}></div><p class="tier-rule-note">当日结算，每日24:00清零；等级变化次日生效。</p>`;
-    if (templateId === 'monthly-appraisal') return `<div class="field"><label>每月鉴定次数</label><input type="number" min="1" step="1" data-tier-field="monthlyQuota" data-tier-index="${tierIndex}" value="${values.monthlyQuota || ''}" ${readOnly ? 'disabled' : ''}></div><p class="tier-rule-note">自然月结算，月末清零；等级变化次日生效。</p>`;
-    return `<div class="field"><label>${templateId === 'management-income' ? '管理收益比例' : '团队佣金比例'}（%）</label><input type="number" min="0.01" max="20" step="0.01" data-tier-field="rate" data-tier-index="${tierIndex}" value="${values.rate || ''}" ${readOnly ? 'disabled' : ''}></div>${capFields(values, '', readOnly, tierIndex)}`;
+  function renderRuleValues(templateId, values, readOnly) {
+    if (['category-commission', 'category-secondary-commission'].includes(templateId)) return renderCommissionItems(values, readOnly, templateId);
+    if (templateId === 'newcomer-reward') return `<div class="field"><label>新人成交奖励（元）</label><input type="number" min="0.01" step="0.01" data-rule-field="amount" value="${values.amount || ''}" ${readOnly ? 'disabled' : ''}></div>`;
+    if (templateId === 'daily-video') return `<div class="field"><label>每日下载条数</label><input type="number" min="1" step="1" data-rule-field="dailyQuota" value="${values.dailyQuota || ''}" ${readOnly ? 'disabled' : ''}></div><p class="tier-rule-note">当日结算，每日24:00清零；等级变化次日生效。</p>`;
+    if (templateId === 'monthly-appraisal') return `<div class="field"><label>每月鉴定次数</label><input type="number" min="1" step="1" data-rule-field="monthlyQuota" value="${values.monthlyQuota || ''}" ${readOnly ? 'disabled' : ''}></div><p class="tier-rule-note">自然月结算，月末清零；等级变化次日生效。</p>`;
+    return `<div class="field"><label>${templateId === 'management-income' ? '管理收益比例' : '团队佣金比例'}（%）</label><input type="number" min="0.01" max="20" step="0.01" data-rule-field="rate" value="${values.rate || ''}" ${readOnly ? 'disabled' : ''}></div>${capFields(values, '', readOnly)}`;
   }
 
-  function renderBenefitTierEditor(templateId, tiers, readOnly) {
-    if (!templateId) return '<p class="empty-copy">选择规则模板后再配置参数档位。</p>';
-    return `<div class="tier-toolbar"><span>等级绑定权益时选择档位，档位名称和参数摘要会同步展示。</span>${readOnly ? '' : '<div><button type="button" class="text-button" data-copy-benefit-tier>复制上一档</button><button type="button" class="button" data-add-benefit-tier>＋ 新增档位</button></div>'}</div><div class="benefit-tiers">${tiers.map((tier, index) => `<article class="benefit-tier-card" data-benefit-tier data-tier-id="${tier.id}"><header><div><strong>${tier.name}</strong><small>${model.summarizeBenefitTier({ templateId }, tier)}</small></div>${readOnly ? '' : `<button type="button" class="danger-link" data-remove-benefit-tier="${index}">删除</button>`}</header><div class="field"><label>档位名称</label><input data-tier-name data-tier-index="${index}" value="${tier.name}" ${readOnly ? 'disabled' : ''} placeholder="例如：基础档"></div>${renderTierValues(templateId, tier.values || {}, readOnly, index)}</article>`).join('')}</div>`;
+  function renderBenefitRuleEditor(templateId, values, readOnly) {
+    if (!templateId) return '<p class="empty-copy">选择权益规则后再配置规则参数。</p>';
+    return `<div class="tier-toolbar"><span>每项权益仅保存一组完整规则参数；需要其他参数值时，请新建一项权益。</span></div><article class="benefit-tier-card benefit-rule-parameter-card" data-benefit-rule-parameters>${renderRuleValues(templateId, values || {}, readOnly)}</article>`;
   }
 
   function benefitChangeTimeline(history) {
@@ -430,51 +426,39 @@
     return `<ul class="timeline benefit-change-timeline">${[...history].reverse().map((entry) => `<li><strong>${entry.action} · ${entry.time}</strong><span>${entry.operator || '当前运营'} · ${entry.effective || '实时生效'}</span>${entry.before !== undefined ? `<small><b>修改前</b>${JSON.stringify(entry.before)}</small>` : ''}${entry.after !== undefined ? `<small><b>修改后</b>${JSON.stringify(entry.after)}</small>` : ''}</li>`).join('')}</ul>`;
   }
 
-  function readBenefitTiersFromForm() {
+  function readBenefitValuesFromForm() {
     const root = benefitFormRoot();
-    const tierCards = [...root.querySelectorAll('[data-benefit-tier]')];
-    if (!tierCards.length) return state.benefitTierDraft;
-    return tierCards.map((card) => {
-      const id = card.dataset.tierId;
-      const name = card.querySelector('[data-tier-name]').value.trim();
-      if (['category-commission', 'category-secondary-commission'].includes(state.benefitTemplateDraft)) {
-        const items = [...card.querySelectorAll('[data-commission-item]')].map((item) => ({
+    const card = root.querySelector('[data-benefit-rule-parameters]');
+    if (!card) return state.benefitValuesDraft;
+    if (['category-commission', 'category-secondary-commission'].includes(state.benefitTemplateDraft)) {
+      return { items: [...card.querySelectorAll('[data-commission-item]')].map((item) => ({
           categories: [...item.querySelectorAll('[data-commission-category]:checked')].map((input) => input.value),
           rate: Number(item.querySelector('[data-commission-field="rate"]').value),
-          capType: item.querySelector('[data-tier-field="capType"]').value,
-          capAmount: Number(item.querySelector('[data-tier-field="capAmount"]').value || 0),
-        }));
-        return { id, name, values: { items } };
-      }
-      const values = {};
-      card.querySelectorAll('[data-tier-field]').forEach((input) => {
-        const field = input.dataset.tierField;
-        values[field] = field.endsWith('Type') ? input.value : Number(input.value || 0);
-      });
-      return { id, name, values };
-    });
-  }
-
-  function rerenderBenefitTierEditor() {
-    const editor = benefitFormRoot().querySelector('[data-tier-editor]');
-    if (editor) editor.innerHTML = renderBenefitTierEditor(state.benefitTemplateDraft, state.benefitTierDraft, false);
-  }
-
-  function validateBenefitTiers(templateId, tiers) {
-    if (!templateId) return { valid: false, error: '请选择规则模板' };
-    if (!tiers.length) return { valid: false, error: '参数化权益至少配置一个参数档位' };
-    if (tiers.some((tier) => !tier.id || !tier.name)) return { valid: false, error: '请填写档位名称' };
-    if (new Set(tiers.map((tier) => tier.id)).size !== tiers.length) return { valid: false, error: '参数档位 ID 不可重复' };
-    if (new Set(tiers.map((tier) => tier.name)).size !== tiers.length) return { valid: false, error: '档位名称不可重复' };
-    for (const tier of tiers) {
-      const validation = model.validateBenefitConfiguration(templateId, tier.values);
-      if (!validation.valid) return { valid: false, error: `${tier.name}：${validation.errors[0]}` };
+          capType: item.querySelector('[data-rule-field="capType"]').value,
+          capAmount: Number(item.querySelector('[data-rule-field="capAmount"]').value || 0),
+        })) };
     }
-    return { valid: true };
+    const values = {};
+    card.querySelectorAll('[data-rule-field]').forEach((input) => {
+      const field = input.dataset.ruleField;
+      values[field] = field.endsWith('Type') ? input.value : Number(input.value || 0);
+    });
+    return values;
+  }
+
+  function rerenderBenefitRuleEditor() {
+    const editor = benefitFormRoot().querySelector('[data-rule-editor]');
+    if (editor) editor.innerHTML = renderBenefitRuleEditor(state.benefitTemplateDraft, state.benefitValuesDraft, false);
+  }
+
+  function validateBenefitValues(templateId, values) {
+    if (!templateId) return { valid: false, error: '请选择规则模板' };
+    const validation = model.validateBenefitConfiguration(templateId, values);
+    return validation.valid ? { valid: true } : { valid: false, error: validation.errors[0] };
   }
 
   function emptyBenefit() {
-    return { name: '', category: '运营类', icon: '权', order: 30, kind: 'fixed', templateId: '', tiers: [], history: [], shortDescription: '', detailDescription: '', status: '生效中' };
+    return { name: '', category: '运营类', icon: '权', order: 30, kind: 'fixed', templateId: '', values: {}, history: [], shortDescription: '', detailDescription: '', status: '生效中' };
   }
 
   function benefitFormRoot() {
@@ -485,8 +469,8 @@
     const disabled = readOnly ? 'disabled' : '';
     const templates = model.getRuleTemplates();
     const displaySection = `<section class="form-section benefit-display-section"><div class="form-section-title"><strong>前台展示信息</strong><span>${readOnly ? '只读查看' : '保存后实时执行'}</span></div><div class="field"><label>权益名称</label><input id="benefit-name" value="${item.name}" ${disabled} placeholder="请输入权益名称"></div><div class="field-row equal"><div class="field"><label>权益类别</label><select id="benefit-category" ${disabled}>${['收益类','运营类','证书类','鉴定类'].map((value) => `<option ${item.category === value ? 'selected' : ''}>${value}</option>`).join('')}</select></div><div class="field"><label>展示排序</label><input id="benefit-order" type="number" min="1" step="10" value="${item.order || 10}" ${disabled}></div></div><div class="field"><label>短说明</label><input id="benefit-short-description" value="${item.shortDescription || item.description || ''}" ${disabled} placeholder="用于权益卡片摘要"></div><div class="field"><label>详细说明</label><textarea id="benefit-detail-description" ${disabled} placeholder="用于权益详情和规则说明">${item.detailDescription || item.description || ''}</textarea></div></section>`;
-    const ruleSection = `<section class="form-section benefit-rule-section"><div class="form-section-title"><strong>业务规则</strong><span>规则归属权益，等级仅选择权益与档位</span></div><div class="benefit-rule-grid"><div class="field"><label>权益类型</label><select id="benefit-kind" ${disabled}><option value="fixed" ${item.kind !== 'parameterized' ? 'selected' : ''}>固定权益</option><option value="parameterized" ${item.kind === 'parameterized' ? 'selected' : ''}>参数化权益</option></select></div><div class="field"><label>当前状态</label><select id="benefit-status" ${disabled}><option ${item.status === '生效中' ? 'selected' : ''}>生效中</option><option ${item.status === '已暂停' ? 'selected' : ''}>已暂停</option></select></div><div class="field benefit-template-field" data-template-field ${item.kind !== 'parameterized' ? 'hidden' : ''}><label>规则模板</label><select id="benefit-template" ${disabled}><option value="">请选择模板</option>${templates.map((template) => `<option value="${template.id}" ${item.templateId === template.id ? 'selected' : ''}>${template.name}</option>`).join('')}</select><small>模板只定义参数和固定口径，实际值保存在当前权益。</small>${readOnly || !item.templateId ? '' : '<button type="button" class="text-button" data-clear-benefit-rule>清空规则配置后切换模板</button>'}</div></div></section>`;
-    const tierSection = `<section class="form-section benefit-tier-section" data-tier-section ${item.kind !== 'parameterized' ? 'hidden' : ''}><div class="form-section-title"><strong>参数档位</strong><span>完整参数快照 · 实时生效</span></div><div data-tier-editor>${renderBenefitTierEditor(item.templateId, state.benefitTierDraft, readOnly)}</div></section>`;
+    const ruleSection = `<section class="form-section benefit-rule-section"><div class="form-section-title"><strong>业务规则</strong><span>规则归属权益，等级仅选择权益</span></div><div class="benefit-rule-grid"><div class="field"><label>权益规则类别</label><select id="benefit-kind" ${disabled}><option value="fixed" ${item.kind !== 'parameterized' ? 'selected' : ''}>固定权益</option><option value="parameterized" ${item.kind === 'parameterized' ? 'selected' : ''}>参数化权益规则</option></select></div><div class="field"><label>当前状态</label><select id="benefit-status" ${disabled}><option ${item.status === '生效中' ? 'selected' : ''}>生效中</option><option ${item.status === '已暂停' ? 'selected' : ''}>已暂停</option></select></div><div class="field benefit-template-field" data-template-field ${item.kind !== 'parameterized' ? 'hidden' : ''}><label>权益规则</label><select id="benefit-template" ${disabled}><option value="">请选择规则</option>${templates.map((template) => `<option value="${template.id}" ${item.templateId === template.id ? 'selected' : ''}>${template.name}</option>`).join('')}</select><small>模板定义参数和固定口径，当前权益保存一组实际参数值。</small>${readOnly || !item.templateId ? '' : '<button type="button" class="text-button" data-clear-benefit-rule>清空规则配置后切换模板</button>'}</div></div></section>`;
+    const tierSection = `<section class="form-section benefit-tier-section" data-tier-section ${item.kind !== 'parameterized' ? 'hidden' : ''}><div class="form-section-title"><strong>规则参数</strong><span>完整参数快照 · 实时生效</span></div><div data-rule-editor>${renderBenefitRuleEditor(item.templateId, state.benefitValuesDraft, readOnly)}</div></section>`;
     const logSection = `<section class="form-section benefit-log-section"><div class="form-section-title"><strong>变更日志</strong><span>记录修改前后、操作人和时间</span></div>${benefitChangeTimeline(item.history)}</section>`;
     if (readOnly) return `${displaySection}${ruleSection}${tierSection}${logSection}`;
     return `<div class="benefit-editor-column benefit-editor-main">${displaySection}${logSection}</div><div class="benefit-editor-column benefit-editor-rules">${ruleSection}${tierSection}</div>`;
@@ -496,7 +480,7 @@
     const item = id ? benefits.find((benefit) => benefit.id === id) : emptyBenefit();
     state.benefitMode = mode;
     state.editingBenefit = id || null;
-    state.benefitTierDraft = JSON.parse(JSON.stringify(item.tiers || []));
+    state.benefitValuesDraft = JSON.parse(JSON.stringify(item.values || {}));
     state.benefitTemplateDraft = item.templateId || '';
     state.benefitTemplateWasCleared = false;
     return item;
@@ -505,7 +489,7 @@
   function renderBenefitEditorPage() {
     const item = state.editingBenefit ? benefits.find((benefit) => benefit.id === state.editingBenefit) : emptyBenefit();
     const title = state.benefitMode === 'create' ? '新建权益' : `编辑权益 · ${item.name}`;
-    return `<section class="benefit-editor-page"><header class="benefit-editor-head"><div class="benefit-editor-title"><button type="button" class="text-button" data-back-benefit-library>← 返回权益库</button><span>权益库管理</span><h1>${title}</h1><p>配置展示信息、规则模板与参数档位，保存后实时执行。</p></div><div class="benefit-editor-actions"><button type="button" class="button" data-back-benefit-library>取消</button><button type="button" class="primary-button" data-save-benefit>${state.benefitMode === 'create' ? '创建权益' : '保存修改'}</button></div></header><div class="benefit-editor-layout">${benefitFormMarkup(item, false)}</div></section>`;
+    return `<section class="benefit-editor-page"><header class="benefit-editor-head"><div class="benefit-editor-title"><button type="button" class="text-button" data-back-benefit-library>← 返回权益库</button><span>权益库管理</span><h1>${title}</h1><p>配置展示信息、权益规则与规则参数，保存后实时执行。</p></div><div class="benefit-editor-actions"><button type="button" class="button" data-back-benefit-library>取消</button><button type="button" class="primary-button" data-save-benefit>${state.benefitMode === 'create' ? '创建权益' : '保存修改'}</button></div></header><div class="benefit-editor-layout">${benefitFormMarkup(item, false)}</div></section>`;
   }
 
   function openBenefitEditor(mode, id) {
@@ -517,7 +501,7 @@
   function closeBenefitEditor() {
     state.benefitEditorOpen = false;
     state.editingBenefit = null;
-    state.benefitTierDraft = [];
+    state.benefitValuesDraft = {};
     state.benefitTemplateDraft = '';
     state.benefitTemplateWasCleared = false;
     render();
@@ -543,7 +527,7 @@
 
   function openRegistrationDetail(id) {
     const item = registrations.find((row) => row.id === id);
-    openDrawer(`开店登记 · ${item.realName}`, '登记资料', `<section class="form-section"><div class="form-section-title"><strong>登记信息</strong>${pill(item.opened ? '已开通' : '待开通')}</div><div class="reference-detail"><div><span>用户</span><strong>${item.realName}（${item.nickname}）</strong></div><div><span>手机号</span><strong>${item.phone}</strong></div><div><span>微信号</span><strong>${item.wechat}</strong></div><div><span>所在城市</span><strong>${item.city}</strong></div><div><span>申请店名</span><strong>${item.storeName || '未填写'}</strong></div><div><span>运营渠道</span><strong>${item.channel}</strong></div></div></section>${item.risk ? `<section class="form-section"><div class="risk-note"><b>风险提示</b><br>${item.risk}，请运营线下核对后再开通。</div></section>` : ''}<section class="form-section"><div class="form-section-title"><strong>处理边界</strong><span>不建设复杂审批</span></div><ul class="check-list"><li>登记成功不提前创建店主身份</li><li>手动开通创建LV2、店铺资料与初始权益</li><li>重复执行开通返回已有结果</li></ul></section>`, item.opened ? '<button class="primary-button" data-close-drawer>关闭</button>' : `<button class="button" data-close-drawer>取消</button><button class="primary-button" data-open-owner="${item.id}" data-close-drawer>开通店主</button>`);
+    openDrawer(`开店登记 · ${item.realName}`, '登记资料', `<section class="form-section"><div class="form-section-title"><strong>登记信息</strong>${pill(item.opened ? '已开通' : '待开通')}</div><div class="reference-detail"><div><span>用户</span><strong>${item.realName}（${item.nickname}）</strong></div><div><span>手机号</span><strong>${item.phone}</strong></div><div><span>微信号</span><strong>${item.wechat}</strong></div><div><span>所在城市</span><strong>${item.city}</strong></div><div><span>申请店名</span><strong>${item.storeName || '未填写'}</strong></div><div><span>运营渠道</span><strong>${item.channel}</strong></div></div></section>${item.risk ? `<section class="form-section"><div class="risk-note"><b>风险提示</b><br>${item.risk}，请运营线下核对后再开通。</div></section>` : ''}`, item.opened ? '<button class="primary-button" data-close-drawer>关闭</button>' : `<button class="button" data-close-drawer>取消</button><button class="primary-button" data-open-owner="${item.id}" data-close-drawer>开通店主</button>`);
   }
 
   function openStoreDetail(id) {
@@ -581,7 +565,7 @@
       { id: 'operations', name: '操作记录' },
     ];
     const tabBar = `<nav class="drawer-tabs">${tabs.map((tab) => `<button type="button" data-agent-detail-tab="${tab.id}" class="${state.agentDetailTab === tab.id ? 'active' : ''}">${tab.name}</button>`).join('')}</nav>`;
-    const profile = `<section class="agent-summary"><div><span>店主</span><strong>${agent.name} · ${agent.id}</strong></div><div><span>当前状态</span>${pill(agent.status)}</div><div><span>开通时间</span><strong>${agent.openedAt}</strong></div></section><section class="form-section"><div class="form-section-title"><strong>店铺资料</strong><span>与店主身份一对一</span></div><div class="reference-detail"><div><span>店铺名称</span><strong>${agent.storeName}</strong></div><div><span>店铺编号</span><strong>JX-${agent.id.replace('A','08')}</strong></div><div><span>店主等级</span><strong>${agent.identity}·${agent.level}</strong></div><div><span>手机号</span><strong>${agent.phone}</strong></div></div></section>`;
+    const profile = `<section class="agent-summary"><div><span>店主</span><strong>${agent.name} · ${agent.id}</strong></div><div><span>开通时间</span><strong>${agent.openedAt}</strong></div></section><section class="form-section"><div class="form-section-title"><strong>店铺资料</strong><span>与店主身份一对一</span></div><div class="reference-detail"><div><span>店铺名称</span><strong>${agent.storeName}</strong></div><div><span>店铺编号</span><strong>JX-${agent.id.replace('A','08')}</strong></div><div><span>店主等级</span><strong>${agent.identity}·${agent.level}</strong></div><div><span>手机号</span><strong>${agent.phone}</strong></div></div></section>`;
     const growth = `<section class="agent-summary single"><div><span>当前等级</span><strong>${agent.level} · ${agent.identity}</strong></div></section><section class="form-section next-level-card"><div class="form-section-title"><strong>下一等级进度</strong><span>${agent.progress}</span></div><div class="progress-track"><i style="width:${agent.progress}"></i></div><div class="metric-progress"><div><span>店铺客户</span><strong>${Math.min(agent.customers, 20)} / 20 人</strong><i><b style="width:${Math.min(agent.customers / 20 * 100, 100)}%"></b></i></div><div><span>店铺收益</span><strong>${agent.commission} / ¥10,000</strong><i><b style="width:86%"></b></i></div><div><span>团队店主</span><strong>${Math.min(agent.teamOwners, 20)} / 20 人</strong><i><b style="width:${Math.min(agent.teamOwners / 20 * 100, 100)}%"></b></i></div></div></section><section class="form-section"><div class="form-section-title"><strong>已获权益</strong><span>按当前等级和状态计算</span></div><div class="agent-benefits"><article><i>收</i><span><strong>鞋服业务收益</strong><small>生效中 · LV2发放</small></span></article><article><i>学</i><span><strong>深度线上运营培训</strong><small>生效中 · LV3发放</small></span></article></div></section>`;
     const upgradeHistory = `<section class="form-section"><div class="form-section-title"><strong>升级记录</strong><span>规则与指标快照永久保留</span></div><ul class="timeline"><li><strong>手动调整至 LV4 · 2026-08-02 14:20</strong><span>运营手动调整 · 操作人：陈运营 · 业务复核通过</span></li><li><strong>LV3 → LV4 · 2026-07-20 10:26</strong><span>自动升级 · 三项条件全部满足</span></li><li><strong>LV2 → LV3 · 2026-06-02 11:16</strong><span>自动升级</span></li><li><strong>LV1 → LV2 · 2026-05-18 09:30</strong><span>完成店主资格开通</span></li></ul></section>`;
     const income = `<section class="form-section"><div class="form-section-title"><strong>经营指标</strong><span>本月 · 数据更新于10:20</span></div><div class="reference-detail"><div><span>店铺客户（推广人数）</span><strong>${agent.customers}人</strong></div><div><span>团队有效订单</span><strong>${agent.orders}笔</strong></div><div><span>已结算店铺收益</span><strong>${agent.commission}</strong></div><div><span>待结算业务收益</span><strong>¥540.00</strong></div></div></section>`;
@@ -679,22 +663,17 @@
     if (removeBenefit) {
       const benefitId = removeBenefit.dataset.removeLevelBenefit;
       state.levelBenefitDraft = state.levelBenefitDraft.filter((id) => id !== benefitId);
-      delete state.levelTierSelectionDraft[benefitId];
       renderLevelDrawer();
     }
     if (event.target.closest('[data-confirm-benefit-picker]')) {
-      state.levelBenefitDraft = model.mergeBenefitSelection([], [...state.benefitPickerSelected]);
-      state.levelBenefitDraft.forEach((benefitId) => {
-        const benefit = benefits.find((item) => item.id === benefitId);
-        if (benefit?.kind === 'parameterized' && !state.levelTierSelectionDraft[benefitId]) state.levelTierSelectionDraft[benefitId] = benefit.tiers[0]?.id;
-      });
+      state.levelBenefitDraft = model.mergeBenefitSelection([], [...state.benefitPickerSelected], benefits);
       benefitPickerModal.hidden = true; renderLevelDrawer(); showToast('等级权益已更新，请保存等级规则');
     }
 
     const saveLevel = event.target.closest('[data-save-level]');
     if (saveLevel) {
       const level = Number(saveLevel.dataset.saveLevel);
-      const validation = model.validateLevelTierSelections(levels, benefits, level, state.levelBenefitDraft, state.levelTierSelectionDraft);
+      const validation = model.validateLevelBenefitSelection(levels, benefits, level, state.levelBenefitDraft);
       if (!validation.valid) { showToast(validation.error); return; }
       const row = state.levelMode === 'create' ? state.levelDraftRow : levels.find((item) => item.level === level);
       if (state.levelMode === 'create') {
@@ -705,9 +684,7 @@
       row.relation = drawerBody.querySelector('#level-relation').value;
       row.upgradeMode = drawerBody.querySelector('#level-upgrade-mode').value;
       row.benefitIds = state.levelBenefitDraft.slice();
-      const previousSelections = model.resolveLevelTierSelections(levels, benefits, level - 1);
-      row.tierSelections = Object.fromEntries(Object.entries(state.levelTierSelectionDraft).filter(([benefitId, tierId]) => previousSelections[benefitId] !== tierId));
-      row.benefits = row.benefitIds.map((id) => benefits.find((item) => item.id === id)?.name).filter(Boolean).join('、') || '暂无增量权益';
+      row.benefits = row.benefitIds.map((id) => benefits.find((item) => item.id === id)?.name).filter(Boolean).join('、') || '暂无权益';
       row.condition = `店铺客户${row.targets[0]}｜店铺收益¥${row.targets[1].toLocaleString()}｜团队店主${row.targets[2]}`;
       if (state.levelMode === 'create') levels.push(row);
       state.pendingChanges += 1;
@@ -724,62 +701,34 @@
       const original = benefits.find((benefit) => benefit.id === state.editingBenefit);
       const referencedLevels = original ? levels.filter((level) => level.benefitIds.includes(original.id)).map((level) => level.level) : [];
       if (referencedLevels.length) { showToast(`请先解除${referencedLevels.map((level) => `LV${level}`).join('、')}的权益引用`); return; }
-      state.benefitTierDraft = [];
+      state.benefitValuesDraft = {};
       state.benefitTemplateDraft = '';
       state.benefitTemplateWasCleared = true;
       benefitFormRoot().querySelector('#benefit-template').value = '';
-      rerenderBenefitTierEditor();
+      rerenderBenefitRuleEditor();
       showToast('规则配置已清空，请选择新模板或改为固定权益');
-    }
-    if (event.target.closest('[data-add-benefit-tier]')) {
-      state.benefitTierDraft = readBenefitTiersFromForm();
-      const nextNumber = Math.max(0, ...state.benefitTierDraft.map((tier) => Number(String(tier.id).replace(/^T/, '')) || 0)) + 1;
-      state.benefitTierDraft.push({ id: `T${nextNumber}`, name: `档位 ${nextNumber}`, values: {} });
-      rerenderBenefitTierEditor();
-    }
-    if (event.target.closest('[data-copy-benefit-tier]')) {
-      state.benefitTierDraft = readBenefitTiersFromForm();
-      const previous = state.benefitTierDraft.at(-1);
-      if (!previous) { showToast('请先新增一个参数档位'); }
-      else {
-        const nextNumber = Math.max(0, ...state.benefitTierDraft.map((tier) => Number(String(tier.id).replace(/^T/, '')) || 0)) + 1;
-        state.benefitTierDraft.push({ id: `T${nextNumber}`, name: `档位 ${nextNumber}`, values: JSON.parse(JSON.stringify(previous.values)) });
-        rerenderBenefitTierEditor();
-      }
-    }
-    const removeTier = event.target.closest('[data-remove-benefit-tier]');
-    if (removeTier) {
-      state.benefitTierDraft = readBenefitTiersFromForm();
-      const targetTier = state.benefitTierDraft[Number(removeTier.dataset.removeBenefitTier)];
-      const original = state.editingBenefit ? benefits.find((benefit) => benefit.id === state.editingBenefit) : null;
-      const removal = model.canRemoveBenefitTier(original?.id, targetTier.id, levels);
-      if (!removal.allowed) showToast(removal.reason);
-      else { state.benefitTierDraft.splice(Number(removeTier.dataset.removeBenefitTier), 1); rerenderBenefitTierEditor(); }
     }
     const addCommissionItem = event.target.closest('[data-add-commission-item]');
     if (addCommissionItem) {
-      state.benefitTierDraft = readBenefitTiersFromForm();
-      const tier = state.benefitTierDraft[Number(addCommissionItem.dataset.addCommissionItem)];
-      tier.values.items = tier.values.items || [];
-      tier.values.items.push({ categories: [], rate: 0, capType: 'capped', capAmount: 0 });
-      rerenderBenefitTierEditor();
+      state.benefitValuesDraft = readBenefitValuesFromForm();
+      state.benefitValuesDraft.items = state.benefitValuesDraft.items || [];
+      state.benefitValuesDraft.items.push({ categories: [], rate: 0, capType: 'capped', capAmount: 0 });
+      rerenderBenefitRuleEditor();
     }
     const removeCommissionItem = event.target.closest('[data-remove-commission-item]');
     if (removeCommissionItem) {
-      state.benefitTierDraft = readBenefitTiersFromForm();
-      const [tierIndex, itemIndex] = removeCommissionItem.dataset.removeCommissionItem.split(':').map(Number);
-      const tier = state.benefitTierDraft[tierIndex];
-      tier.values.items.splice(itemIndex, 1);
-      rerenderBenefitTierEditor();
+      state.benefitValuesDraft = readBenefitValuesFromForm();
+      state.benefitValuesDraft.items.splice(Number(removeCommissionItem.dataset.removeCommissionItem), 1);
+      rerenderBenefitRuleEditor();
     }
     const saveBenefit = event.target.closest('[data-save-benefit]');
     if (saveBenefit) {
       const root = benefitFormRoot();
       const kind = root.querySelector('#benefit-kind').value;
       const templateId = kind === 'parameterized' ? root.querySelector('#benefit-template').value : '';
-      const tiers = kind === 'parameterized' ? readBenefitTiersFromForm() : [];
+      const values = kind === 'parameterized' ? readBenefitValuesFromForm() : {};
       if (kind === 'parameterized') {
-        const validation = validateBenefitTiers(templateId, tiers);
+        const validation = validateBenefitValues(templateId, values);
         if (!validation.valid) { showToast(validation.error); return; }
       }
       const input = {
@@ -792,19 +741,18 @@
         status: root.querySelector('#benefit-status').value,
         kind,
         templateId,
-        tiers,
+        values,
       };
       if (state.editingBenefit) {
         const original = benefits.find((item) => item.id === state.editingBenefit);
         const mutation = model.canMutateBenefit(original.id, onlineReferencedBenefitIds());
         if (original.status === '生效中' && input.status === '已暂停' && !mutation.allowed) { showToast(mutation.reason); return; }
         const referencedLevels = levels.filter((level) => level.benefitIds.includes(original.id)).map((level) => level.level);
-        const usedTierIds = [...new Set(levels.map((level) => level.tierSelections?.[original.id]).filter(Boolean))];
-        const ruleMutation = model.canUpdateBenefitRule(original, input, referencedLevels, { templateWasCleared: state.benefitTemplateWasCleared, usedTierIds });
+        const ruleMutation = model.canUpdateBenefitRule(original, input, referencedLevels, { templateWasCleared: state.benefitTemplateWasCleared });
         if (!ruleMutation.allowed) { showToast(ruleMutation.reason); return; }
-        input.history = model.appendBenefitChangeLog(original.history, { action: '修改权益与参数档位', before: { templateId: original.templateId, tiers: original.tiers }, after: { templateId, tiers }, operator: '当前运营', time: '2026-08-12 10:30' });
+        input.history = model.appendBenefitChangeLog(original.history, { action: '修改权益与规则参数', before: { templateId: original.templateId, values: original.values }, after: { templateId, values }, operator: '当前运营', time: '2026-08-12 10:30' });
       } else {
-        input.history = model.appendBenefitChangeLog([], { action: '创建权益', before: null, after: { templateId, tiers }, operator: '当前运营', time: '2026-08-12 10:30' });
+        input.history = model.appendBenefitChangeLog([], { action: '创建权益', before: null, after: { templateId, values }, operator: '当前运营', time: '2026-08-12 10:30' });
       }
       const result = state.benefitMode === 'create' ? model.createBenefit(benefits, input) : model.updateBenefit(benefits, state.editingBenefit, input);
       if (!result.ok) { showToast(result.error); root.querySelector('#benefit-name').focus(); }
@@ -946,27 +894,40 @@
   });
 
   document.addEventListener('change', (event) => {
-    if (event.target.matches('[data-benefit-option]')) { if (event.target.checked) state.benefitPickerSelected.add(event.target.value); else state.benefitPickerSelected.delete(event.target.value); benefitPickerCount.textContent = `已选择 ${state.benefitPickerSelected.size} 项`; }
-    if (event.target.matches('[data-level-tier-selection]')) state.levelTierSelectionDraft[event.target.dataset.levelTierSelection] = event.target.value;
+    if (event.target.matches('[data-benefit-option]')) {
+      const selectedBenefit = benefits.find((item) => item.id === event.target.value);
+      if (event.target.checked && selectedBenefit?.kind === 'parameterized' && selectedBenefit.templateId) {
+        [...state.benefitPickerSelected].forEach((benefitId) => {
+          const current = benefits.find((item) => item.id === benefitId);
+          if (current?.kind === 'parameterized' && current.templateId === selectedBenefit.templateId) state.benefitPickerSelected.delete(benefitId);
+        });
+        benefitPickerList.querySelectorAll('[data-benefit-option]:checked').forEach((input) => {
+          const current = benefits.find((item) => item.id === input.value);
+          if (input !== event.target && current?.templateId === selectedBenefit.templateId) input.checked = false;
+        });
+      }
+      if (event.target.checked) state.benefitPickerSelected.add(event.target.value); else state.benefitPickerSelected.delete(event.target.value);
+      benefitPickerCount.textContent = `已选择 ${state.benefitPickerSelected.size} 项`;
+    }
     if (event.target.matches('#benefit-kind')) {
       const parameterized = event.target.value === 'parameterized';
       benefitFormRoot().querySelector('[data-template-field]').hidden = !parameterized;
       benefitFormRoot().querySelector('[data-tier-section]').hidden = !parameterized;
-      if (!parameterized) { state.benefitTemplateDraft = ''; state.benefitTierDraft = []; }
+      if (!parameterized) { state.benefitTemplateDraft = ''; state.benefitValuesDraft = {}; }
     }
     if (event.target.matches('#benefit-template')) {
       const original = state.editingBenefit ? benefits.find((benefit) => benefit.id === state.editingBenefit) : null;
       const referencedLevels = original ? levels.filter((level) => level.benefitIds.includes(original.id)).map((level) => level.level) : [];
-      const mutation = model.canChangeBenefitTemplate({ tiers: readBenefitTiersFromForm() }, referencedLevels);
+      const mutation = model.canChangeBenefitTemplate({ values: readBenefitValuesFromForm() }, referencedLevels);
       if (original && event.target.value !== original.templateId && !mutation.allowed) { showToast(mutation.reason); event.target.value = original.templateId; return; }
       state.benefitTemplateDraft = event.target.value;
-      state.benefitTierDraft = event.target.value ? [{ id: 'T1', name: '档位 1', values: {} }] : [];
-      rerenderBenefitTierEditor();
+      state.benefitValuesDraft = {};
+      rerenderBenefitRuleEditor();
     }
-    if (event.target.matches('[data-tier-field="capType"], [data-tier-field$="CapType"]')) {
-      const field = event.target.dataset.tierField.replace('Type', 'Amount');
-      const scope = event.target.closest('[data-commission-item]') || event.target.closest('[data-benefit-tier]');
-      const amount = scope.querySelector(`[data-tier-field="${field}"]`);
+    if (event.target.matches('[data-rule-field="capType"], [data-rule-field$="CapType"]')) {
+      const field = event.target.dataset.ruleField.replace('Type', 'Amount');
+      const scope = event.target.closest('[data-commission-item]') || event.target.closest('[data-benefit-rule-parameters]');
+      const amount = scope.querySelector(`[data-rule-field="${field}"]`);
       amount.disabled = event.target.value === 'unlimited';
       if (amount.disabled) amount.value = '';
     }
