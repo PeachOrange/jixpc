@@ -324,10 +324,20 @@
     const result = [...new Set(current || [])];
     (selected || []).forEach((benefitId) => {
       const benefit = (benefits || []).find((item) => item.id === benefitId);
-      if (benefit && benefit.kind === 'parameterized' && benefit.templateId) {
+      const exclusivityKey = benefit && benefit.name && benefit.name.includes('团队佣金')
+        ? 'team-commission'
+        : benefit && benefit.kind === 'parameterized' && benefit.templateId
+          ? `template:${benefit.templateId}`
+          : '';
+      if (exclusivityKey) {
         for (let index = result.length - 1; index >= 0; index -= 1) {
           const existing = (benefits || []).find((item) => item.id === result[index]);
-          if (existing && existing.kind === 'parameterized' && existing.templateId === benefit.templateId) result.splice(index, 1);
+          const existingKey = existing && existing.name && existing.name.includes('团队佣金')
+            ? 'team-commission'
+            : existing && existing.kind === 'parameterized' && existing.templateId
+              ? `template:${existing.templateId}`
+              : '';
+          if (existingKey === exclusivityKey) result.splice(index, 1);
         }
       }
       if (!result.includes(benefitId)) result.push(benefitId);

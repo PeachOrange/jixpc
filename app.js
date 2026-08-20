@@ -55,10 +55,10 @@
     { level: 9, identity: '店主', condition: '推荐800人有效用户，收益超3000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'A01'], enabled: true, targets: [800, 3000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
     { level: 10, identity: '店主', condition: '推荐1000人有效用户，收益超4000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A01'], enabled: true, targets: [1000, 4000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
     { level: 11, identity: '店主', condition: '推荐2000人有效用户，收益超6000元，有效店主LV5级别以上大于20个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2000, 6000, 20], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 12, identity: '店主', condition: '推荐2500人有效用户，收益超8000元，有效店主LV5级别以上大于30个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2500, 8000, 30], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 13, identity: '店主', condition: '推荐3000人有效用户，收益超10000元，有效店主LV5级别以上大于50个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [3000, 10000, 50], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 14, identity: '店主', condition: '推荐4000人有效用户，收益超12000元，有效店主LV5级别以上大于80个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [4000, 12000, 80], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 15, identity: '店主', condition: '推荐5000人有效用户，收益超15000元，有效店主LV5级别以上大于100个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'C01', 'A02'], enabled: true, targets: [5000, 15000, 100], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 12, identity: '店主', condition: '推荐2500人有效用户，收益超8000元，有效店主LV5级别以上大于30个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B16', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2500, 8000, 30], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 13, identity: '店主', condition: '推荐3000人有效用户，收益超10000元，有效店主LV5级别以上大于50个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B17', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [3000, 10000, 50], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 14, identity: '店主', condition: '推荐4000人有效用户，收益超12000元，有效店主LV5级别以上大于80个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B18', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [4000, 12000, 80], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 15, identity: '店主', condition: '推荐5000人有效用户，收益超15000元，有效店主LV5级别以上大于100个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B19', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'C01', 'A02'], enabled: true, targets: [5000, 15000, 100], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
   ];
 
   let benefits = [
@@ -398,7 +398,7 @@
     state.editingLevel = level;
     state.levelMode = mode;
     state.levelDraftRow = mode === 'create' ? row : null;
-    state.levelBenefitDraft = row.benefitIds.slice();
+    state.levelBenefitDraft = model.mergeBenefitSelection([], row.benefitIds, benefits);
     openDrawer(`${mode === 'create' ? '新增' : '编辑'} LV${level} 规则`, '等级规则配置', '', `<button class="button" data-close-drawer>取消</button><button class="primary-button" data-save-level="${level}">${mode === 'create' ? '创建等级' : '保存修改'}</button>`);
     renderLevelDrawer();
   }
@@ -718,7 +718,7 @@
       row.directOwnerMinLevel = Number(drawerBody.querySelector('[data-direct-owner-min-level]').value) || 5;
       row.relation = drawerBody.querySelector('#level-relation').value;
       row.upgradeMode = drawerBody.querySelector('#level-upgrade-mode').value;
-      row.benefitIds = state.levelBenefitDraft.slice();
+      row.benefitIds = model.mergeBenefitSelection([], state.levelBenefitDraft, benefits);
       row.benefits = row.benefitIds.map((id) => benefits.find((item) => item.id === id)?.name).filter(Boolean).join('、') || '暂无权益';
       const conditionParts = [];
       if (row.special) {
