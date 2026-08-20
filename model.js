@@ -43,32 +43,20 @@
     },
     {
       id: 'category-commission', name: '品类订单佣金', category: '收益类', readOnly: true,
-      description: '按业务品类配置直属店主订单佣金。', fixedBase: '最终回收成交价',
-      fixedRules: ['仅计算直属店主佣金', '单笔可设置封顶或上不封顶', '同一权益内品类不可重复'],
+      description: '按业务品类配置直属店主订单佣金，并可开启上级店主间推订单佣金。', fixedBase: '最终回收成交价',
+      fixedRules: ['直属店主按自身权益比例与封顶获得佣金', '开启间推后，上级佣金为上级按自身权益计算的金额减去直属实际佣金', '间推佣金最低为0元，不产生负向扣款', '同一权益内品类不可重复'],
       parameters: [
         { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
-        { key: 'rate', label: '直属店主佣金比例', type: 'percent', minExclusive: 0, max: 100, decimals: 2, unit: '%' },
-        { key: 'cap', label: '直属单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
-      ],
-    },
-    {
-      id: 'category-secondary-commission', name: '品类二级订单佣金', category: '收益类', readOnly: true,
-      description: '按业务品类配置上级店主的二级订单佣金。', fixedBase: '最终回收成交价',
-      fixedRules: ['仅计算上级店主佣金', '单笔可设置封顶或上不封顶', '同一权益内品类不可重复'],
-      parameters: [
-        { key: 'categories', label: '业务品类', type: 'multi-select', options: businessCategories },
-        { key: 'rate', label: '上级店主佣金比例', type: 'percent', minExclusive: 0, max: 50, decimals: 2, unit: '%' },
-        { key: 'cap', label: '上级单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
-      ],
-    },
-    {
-      id: 'management-income', name: '开通店主与管理收益', category: '收益类', readOnly: true,
-      description: '按直接开通的一级下属店主订单成交价计算管理收益。', fixedBase: '最终回收成交价',
-      fixedRules: ['仅直接开通的一级下属店主', '按交易完成时实时参数执行'],
-      parameters: [
-        { key: 'rate', label: '管理收益比例', type: 'percent', minExclusive: 0, max: 20, decimals: 2, unit: '%' },
+        { key: 'rate', label: '佣金比例', type: 'percent', minExclusive: 0, max: 100, decimals: 2, unit: '%' },
         { key: 'cap', label: '单笔封顶', type: 'cap', minExclusive: 0, decimals: 2, unit: '元' },
+        { key: 'indirectEnabled', label: '是否开启间推订单佣金', type: 'boolean' },
       ],
+    },
+    {
+      id: 'open-owner', name: '开通店主', category: '运营类', readOnly: true,
+      description: '用于判断店主是否可将本人直推的普通客户开通为店主。',
+      fixedRules: ['当前等级须包含“开通店主”权益', '仅可开通本人直推的普通客户', '权益生效且店主当前状态允许开通操作'],
+      parameters: [],
     },
     {
       id: 'team-commission', name: '团队佣金', category: '收益类', readOnly: true,
@@ -108,14 +96,16 @@
   function summarizeBenefitConfiguration(benefit) {
     const values = benefit && benefit.values || {};
     if (benefit.templateId === 'newcomer-reward') return `${values.amount || 0} 元`;
-    if (['category-commission', 'category-secondary-commission'].includes(benefit.templateId)) {
+    if (benefit.templateId === 'category-commission') {
       const items = values.items || [];
       const rates = items.map((item) => Number(item.rate)).filter(Number.isFinite);
       const cappedAmounts = items.filter((item) => item.capType === 'capped').map((item) => Number(item.capAmount)).filter(Number.isFinite);
       const capSummary = cappedAmounts.length ? `｜封顶 ${Math.max(...cappedAmounts)} 元` : items.some((item) => item.capType === 'unlimited') ? '｜上不封顶' : '';
-      return `${items.length} 组品类｜${rates.length ? Math.min(...rates) : 0}% 起${capSummary}`;
+      const indirectSummary = items.some((item) => item.indirectEnabled === true) ? '｜间推开启' : '｜间推关闭';
+      return `${items.length} 组品类｜${rates.length ? Math.min(...rates) : 0}% 起${capSummary}${indirectSummary}`;
     }
-    if (['management-income', 'team-commission'].includes(benefit.templateId)) {
+    if (benefit.templateId === 'open-owner') return '可开通本人直推的普通客户';
+    if (benefit.templateId === 'team-commission') {
       return `${values.rate || 0}%｜${values.capType === 'capped' ? `封顶 ${values.capAmount || 0} 元` : '上不封顶'}`;
     }
     if (benefit.templateId === 'daily-video') return `每日 ${values.dailyQuota || 0} 条`;
@@ -203,6 +193,7 @@
       categories.forEach((category) => usedCategories.add(category));
       if (!positiveNumber(item.rate, maxRate)) errors.push(`${rateLabel}必须大于0且不超过${maxRate}%`);
       if (positiveNumber(item.rate, maxRate) && !hasAtMostTwoDecimals(item.rate)) errors.push('比例最多保留两位小数');
+      if (typeof item.indirectEnabled !== 'boolean') errors.push('请选择是否开启间推订单佣金');
       validateCap(item, '', errors);
     });
     if (!(values.items || []).length) errors.push('至少配置一个品类计算项');
@@ -217,14 +208,33 @@
     if (templateId === 'newcomer-reward' && positiveNumber(values.amount) && !hasAtMostTwoDecimals(values.amount)) errors.push('金额最多保留两位小数');
     if (templateId === 'daily-video' && (!Number.isInteger(Number(values.dailyQuota)) || Number(values.dailyQuota) < 1)) errors.push('每日下载条数必须为正整数');
     if (templateId === 'monthly-appraisal' && (!Number.isInteger(Number(values.monthlyQuota)) || Number(values.monthlyQuota) < 1)) errors.push('每月鉴定次数必须为正整数');
-    if (['management-income', 'team-commission'].includes(templateId)) {
+    if (templateId === 'team-commission') {
       if (!positiveNumber(values.rate, 20)) errors.push('比例必须大于0且不超过20%');
       if (positiveNumber(values.rate, 20) && !hasAtMostTwoDecimals(values.rate)) errors.push('比例最多保留两位小数');
       validateCap(values, '', errors);
     }
-    if (templateId === 'category-commission') errors.push(...validateCategoryCommission(values, 100, '直属店主佣金比例'));
-    if (templateId === 'category-secondary-commission') errors.push(...validateCategoryCommission(values, 50, '上级店主佣金比例'));
+    if (templateId === 'category-commission') errors.push(...validateCategoryCommission(values, 100, '佣金比例'));
     return { valid: errors.length === 0, errors: [...new Set(errors)] };
+  }
+
+  function roundMoney(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  }
+
+  function calculateRuleCommission(transactionAmount, rule) {
+    const amount = Math.max(Number(transactionAmount) || 0, 0);
+    const gross = roundMoney(amount * (Number(rule && rule.rate) || 0) / 100);
+    if (rule && rule.capType === 'capped') return roundMoney(Math.min(gross, Math.max(Number(rule.capAmount) || 0, 0)));
+    return gross;
+  }
+
+  function calculateCategoryCommission(transactionAmount, directRule, upstreamRule) {
+    const direct = calculateRuleCommission(transactionAmount, directRule);
+    const upstreamPool = upstreamRule && upstreamRule.indirectEnabled === true
+      ? calculateRuleCommission(transactionAmount, upstreamRule)
+      : 0;
+    const indirect = roundMoney(Math.max(upstreamPool - direct, 0));
+    return { direct, indirect, total: roundMoney(direct + indirect) };
   }
 
   function appendBenefitChangeLog(history, change) {
@@ -375,6 +385,19 @@
     return { ok: true, records: records.filter((item) => item.id !== id).map((item) => ({ ...item })) };
   }
 
+  function resolveSpecialLevelBenefitIds(levels, benefits, options = {}) {
+    const sourceLevel = Number(options.sourceLevel);
+    const source = (levels || []).find((item) => Number(item.level) === sourceLevel);
+    const benefitById = new Map((benefits || []).map((item) => [item.id, item]));
+    const excludedNameKeywords = (options.excludedNameKeywords || []).map((item) => String(item));
+    const inherited = (source?.benefitIds || []).filter((id) => {
+      const benefit = benefitById.get(id);
+      return benefit && !excludedNameKeywords.some((keyword) => benefit.name.includes(keyword));
+    });
+    const included = benefitById.has(options.includeBenefitId) ? [options.includeBenefitId] : [];
+    return [...new Set([...inherited, ...included])];
+  }
+
   function sortBenefits(records) {
     return (records || []).map((item) => ({ ...item })).sort((left, right) => (
       (benefitCategoryOrder[left.category] ?? 99) - (benefitCategoryOrder[right.category] ?? 99)
@@ -480,6 +503,7 @@
 
   root.AdminModel = {
     appendBenefitChangeLog,
+    calculateCategoryCommission,
     canAssignBenefit,
     canChangeBenefitTemplate,
     canUpdateBenefitRule,
@@ -495,6 +519,7 @@
     publishVersion,
     openStoreOwner,
     renameStore,
+    resolveSpecialLevelBenefitIds,
     resolveLevelBenefitIds,
     retryCalculation,
     reorderBenefit,
