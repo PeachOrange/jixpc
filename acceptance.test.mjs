@@ -110,12 +110,39 @@ test('等级权益使用物化累计配置并取消新增等级入口', () => {
   assert.ok(drawer.includes('data-remove-level-benefit'));
 });
 
+test('LV12至LV15团队佣金互斥且每级只保留最高比例', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const levelData = sourceSection(source, 'const levels = [', 'let benefits = [');
+  assert.match(levelData, /level: 12[\s\S]*benefitIds: \[[^\]]*'B16'[^\]]*\]/);
+  assert.match(levelData, /level: 13[\s\S]*benefitIds: \[[^\]]*'B17'[^\]]*\]/);
+  assert.match(levelData, /level: 14[\s\S]*benefitIds: \[[^\]]*'B18'[^\]]*\]/);
+  assert.match(levelData, /level: 15[\s\S]*benefitIds: \[[^\]]*'B19'[^\]]*\]/);
+  for (const [level, excluded] of [[12, ['B14']], [13, ['B14', 'B16']], [14, ['B14', 'B16', 'B17']], [15, ['B14', 'B16', 'B17', 'B18']]]) {
+    const row = levelData.match(new RegExp(`level: ${level}[\\s\\S]*?benefitIds: \\[[^\\]]*\\]`))?.[0] || '';
+    for (const benefitId of excluded) assert.equal(row.includes(`'${benefitId}'`), false, `LV${level}不应同时保留${benefitId}`);
+  }
+});
+
+test('等级权益选择自动替换同组团队佣金', () => {
+  const model = adminModel();
+  const benefits = [
+    { id: 'B14', name: '团队佣金1%', category: '收益类' },
+    { id: 'B16', name: '团队佣金2%', category: '收益类' },
+    { id: 'B17', name: '团队佣金3%', category: '收益类' },
+  ];
+  assert.deepEqual(JSON.parse(JSON.stringify(model.mergeBenefitSelection([], ['B14', 'B16', 'B17'], benefits))), ['B17']);
+});
+
 test('LV99继承LV15权益时排除团队佣金并追加区县佣金', () => {
   const model = adminModel();
   const result = model.resolveSpecialLevelBenefitIds(
-    [{ level: 15, benefitIds: ['B01', 'B19', 'O01'] }],
+    [{ level: 15, benefitIds: ['B01', 'B14', 'B16', 'B17', 'B18', 'B19', 'O01'] }],
     [
       { id: 'B01', name: '新人成交奖励' },
+      { id: 'B14', name: '团队佣金1%' },
+      { id: 'B16', name: '团队佣金2%' },
+      { id: 'B17', name: '团队佣金3%' },
+      { id: 'B18', name: '团队佣金4%' },
       { id: 'B19', name: '团队佣金5%' },
       { id: 'O01', name: '0基础线上回收培训' },
       { id: 'B20', name: '区县佣金' },
