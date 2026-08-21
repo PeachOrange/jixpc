@@ -43,45 +43,52 @@
     tasks: [{ id: 'logs', name: '计算日志', badge: 3 }, { id: 'migration', name: '存量迁移' }],
   };
 
+  const levelIdentityOptions = ['普通用户', '成长店主', '轻享店主', '星享店主', '超级店主', '超级合伙人', '区县合伙人'];
+
   const levels = [
-    { level: 1, identity: '普通用户', condition: '—（未标注）', relation: '固定等级', benefitIds: [], enabled: true, targets: [0, 0, 0], conditionEnabled: [false, false, false], directOwnerMinLevel: 5, upgradeMode: '固定等级' },
-    { level: 2, identity: '店主', condition: '—（未标注）', relation: '初始店主等级', benefitIds: ['B01', 'O01'], enabled: true, targets: [0, 0, 0], conditionEnabled: [false, false, false], directOwnerMinLevel: 5, upgradeMode: '开通后生效' },
-    { level: 3, identity: '店主', condition: '推荐10人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'O01'], enabled: true, targets: [10, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 4, identity: '店主', condition: '推荐20人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'B04', 'B05', 'O01'], enabled: true, targets: [20, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 5, identity: '店主', condition: '推荐30人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'O01', 'O02', 'O03', 'A01'], enabled: true, targets: [30, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 6, identity: '店主', condition: '推荐100人有效用户，收益超100元', relation: '全部满足', benefitIds: ['B01', 'B04', 'B05', 'B06', 'B07', 'B08', 'B09', 'O01', 'O02', 'O03', 'O04', 'A01'], enabled: true, targets: [100, 100, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 7, identity: '店主', condition: '推荐300人有效用户，收益超500元', relation: '全部满足', benefitIds: ['B01', 'B06', 'B07', 'B08', 'B09', 'B10', 'B11', 'O01', 'O02', 'O03', 'O04', 'A01'], enabled: true, targets: [300, 500, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 8, identity: '店主', condition: '推荐500人有效用户，收益超2000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'O01', 'O03', 'O04', 'O05', 'A01'], enabled: true, targets: [500, 2000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 9, identity: '店主', condition: '推荐800人有效用户，收益超3000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'A01'], enabled: true, targets: [800, 3000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 10, identity: '店主', condition: '推荐1000人有效用户，收益超4000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A01'], enabled: true, targets: [1000, 4000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 11, identity: '店主', condition: '推荐2000人有效用户，收益超6000元，有效店主LV5级别以上大于20个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2000, 6000, 20], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 12, identity: '店主', condition: '推荐2500人有效用户，收益超8000元，有效店主LV5级别以上大于30个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B16', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2500, 8000, 30], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 13, identity: '店主', condition: '推荐3000人有效用户，收益超10000元，有效店主LV5级别以上大于50个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B17', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [3000, 10000, 50], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 14, identity: '店主', condition: '推荐4000人有效用户，收益超12000元，有效店主LV5级别以上大于80个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B18', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [4000, 12000, 80], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
-    { level: 15, identity: '店主', condition: '推荐5000人有效用户，收益超15000元，有效店主LV5级别以上大于100个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B09', 'B10', 'B11', 'B12', 'B13', 'B15', 'B19', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'C01', 'A02'], enabled: true, targets: [5000, 15000, 100], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 1, identity: '普通用户', condition: '—（未标注）', relation: '不适用', benefitIds: ['B01'], enabled: true, targets: [0, 0, 0], conditionEnabled: [false, false, false], directOwnerMinLevel: 5, upgradeMode: '固定等级' },
+    { level: 2, identity: '成长店主', condition: '—（未标注）', relation: '不适用', benefitIds: ['B01', 'O01'], enabled: true, targets: [0, 0, 0], conditionEnabled: [false, false, false], directOwnerMinLevel: 5, upgradeMode: '开通后生效' },
+    { level: 3, identity: '轻享店主', condition: '推荐10人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'O01'], enabled: true, targets: [10, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 4, identity: '轻享店主', condition: '推荐20人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'B04', 'B05', 'O01'], enabled: true, targets: [20, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 5, identity: '轻享店主', condition: '推荐30人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B21', 'O01'], enabled: true, targets: [30, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 6, identity: '星享店主', condition: '推荐50人有效用户', relation: '全部满足', benefitIds: ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B21', 'O01', 'O02', 'O03', 'A01'], enabled: true, targets: [50, 0, 0], conditionEnabled: [true, false, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 7, identity: '超级店主', condition: '推荐100人有效用户，收益超100元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B04', 'B05', 'B06', 'B09', 'B21', 'O01', 'O02', 'O03', 'O04', 'A01'], enabled: true, targets: [100, 100, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 8, identity: '超级店主', condition: '推荐300人有效用户，收益超500元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B06', 'B09', 'B21', 'O01', 'O02', 'O03', 'O04', 'A01'], enabled: true, targets: [300, 500, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 9, identity: '超级店主', condition: '推荐500人有效用户，收益超2000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B22', 'O01', 'O03', 'O04', 'O05', 'A01'], enabled: true, targets: [500, 2000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 10, identity: '超级店主', condition: '推荐800人有效用户，收益超3000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B22', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'A01'], enabled: true, targets: [800, 3000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 11, identity: '超级店主', condition: '推荐1000人有效用户，收益超4000元', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B22', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A01'], enabled: true, targets: [1000, 4000, 0], conditionEnabled: [true, true, false], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 12, identity: '超级合伙人', condition: '推荐1500人有效用户，收益超5000元，有效店主LV5级别以上大于10个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B15', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [1500, 5000, 10], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 13, identity: '超级合伙人', condition: '推荐2000人有效用户，收益超6000元，有效店主LV5级别以上大于20个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B14', 'B15', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2000, 6000, 20], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 14, identity: '超级合伙人', condition: '推荐2500人有效用户，收益超8000元，有效店主LV5级别以上大于30个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B15', 'B16', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [2500, 8000, 30], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 15, identity: '超级合伙人', condition: '推荐3000人有效用户，收益超10000元，有效店主LV5级别以上大于50个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B15', 'B17', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [3000, 10000, 50], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 16, identity: '超级合伙人', condition: '推荐4000人有效用户，收益超12000元，有效店主LV5级别以上大于80个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B15', 'B18', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'A02'], enabled: true, targets: [4000, 12000, 80], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
+    { level: 17, identity: '超级合伙人', condition: '推荐5000人有效用户，收益超15000元，有效店主LV5级别以上大于100个', relation: '全部满足', benefitIds: ['B01', 'B07', 'B08', 'B10', 'B11', 'B12', 'B09', 'B13', 'B15', 'B19', 'B22', 'B23', 'O01', 'O03', 'O04', 'O05', 'O06', 'O07', 'O08', 'O09', 'O10', 'C01', 'A02'], enabled: true, targets: [5000, 15000, 100], conditionEnabled: [true, true, true], directOwnerMinLevel: 5, upgradeMode: '自动升级' },
   ];
 
   let benefits = [
     { id: 'B01', name: '新人成交奖励', category: '收益类', icon: '新', order: 10, history: [], shortDescription: '新人成交奖励，成交后发放', detailDescription: '新人成交奖励10元/人，成交即得，现金到帐', description: '新人成交奖励，成交后发放', status: '生效中' },
-    { id: 'B02', name: '正品鞋15%佣金', category: '收益类', icon: '鞋', order: 20, history: [], shortDescription: '正品鞋每单15%佣金', detailDescription: '正品鞋，每单15%佣金，单双佣金高达75元', description: '正品鞋每单15%佣金', status: '生效中' },
-    { id: 'B03', name: '正品服15%佣金', category: '收益类', icon: '服', order: 30, history: [], shortDescription: '正品服每单15%佣金', detailDescription: '正品服，每单15%佣金，单双佣金高达75元', description: '正品服每单15%佣金', status: '生效中' },
-    { id: 'B04', name: '普鞋回收15%佣金', category: '收益类', icon: '普', order: 40, history: [], shortDescription: '普鞋回收15%佣金', detailDescription: '普鞋回收窗口，15%佣金，上不封顶', description: '普鞋回收15%佣金', status: '生效中' },
-    { id: 'B05', name: '旧衣回收50%佣金', category: '收益类', icon: '衣', order: 50, history: [], shortDescription: '旧衣回收50%佣金', detailDescription: '旧衣回收窗口，50%佣金，上不封顶', description: '旧衣回收50%佣金', status: '生效中' },
-    { id: 'B06', name: '废旧手机15%佣金', category: '收益类', icon: '机', order: 60, history: [], shortDescription: '废旧手机每单15%佣金', detailDescription: '废旧手机，每单15%佣金，单件佣金高达75元', description: '废旧手机每单15%佣金', status: '生效中' },
-    { id: 'B07', name: '正品鞋20%两级佣金', category: '收益类', icon: '鞋', order: 70, history: [], shortDescription: '正品鞋20%两级佣金', detailDescription: '正品鞋，20%两级佣金，单双佣金高达100元', description: '正品鞋20%两级佣金', status: '生效中' },
-    { id: 'B08', name: '正品服20%两级佣金', category: '收益类', icon: '服', order: 80, history: [], shortDescription: '正品服20%两级佣金', detailDescription: '正品服，20%两级佣金，单双佣金高达100元', description: '正品服20%两级佣金', status: '生效中' },
-    { id: 'B09', name: '团队独立收益后台', category: '收益类', icon: '台', order: 90, history: [], shortDescription: '实时查看团队收益与数据', detailDescription: '拥有团队独立收益后台，实时查看团队收益明细、佣金结算与数据报表', description: '实时查看团队收益与数据', status: '生效中' },
-    { id: 'B10', name: '旧衣回收60%佣金', category: '收益类', icon: '衣', order: 100, history: [], shortDescription: '旧衣回收60%佣金', detailDescription: '旧衣回收窗口，60%佣金，上不封顶', description: '旧衣回收60%佣金', status: '生效中' },
-    { id: 'B11', name: '普鞋回收20%佣金', category: '收益类', icon: '普', order: 110, history: [], shortDescription: '普鞋回收20%佣金', detailDescription: '普鞋回收窗口，20%佣金，上不封顶', description: '普鞋回收20%佣金', status: '生效中' },
-    { id: 'B12', name: '废旧手机20%两级佣金', category: '收益类', icon: '机', order: 120, history: [], shortDescription: '废旧手机20%两级佣金', detailDescription: '废旧手机，20%两级佣金，单双佣金高达100元', description: '废旧手机20%两级佣金', status: '生效中' },
+    { id: 'B02', name: '正品鞋15%收益', category: '收益类', icon: '鞋', order: 20, history: [], shortDescription: '正品鞋每单15%收益', detailDescription: '正品鞋，每单15%收益，单笔收益高达75元', description: '正品鞋每单15%收益', status: '生效中' },
+    { id: 'B03', name: '正品服15%收益', category: '收益类', icon: '服', order: 30, history: [], shortDescription: '正品服每单15%收益', detailDescription: '正品服，每单15%收益，单笔收益高达75元', description: '正品服每单15%收益', status: '生效中' },
+    { id: 'B04', name: '普鞋回收15%收益', category: '收益类', icon: '普', order: 40, history: [], shortDescription: '普鞋回收15%收益', detailDescription: '普鞋回收窗口，15%收益，上不封顶', description: '普鞋回收15%收益', status: '生效中' },
+    { id: 'B05', name: '旧衣回收50%收益', category: '收益类', icon: '衣', order: 50, history: [], shortDescription: '旧衣回收50%收益', detailDescription: '旧衣回收窗口，50%收益，上不封顶', description: '旧衣回收50%收益', status: '生效中' },
+    { id: 'B06', name: '废旧手机15%收益', category: '收益类', icon: '机', order: 60, history: [], shortDescription: '废旧手机每单15%收益', detailDescription: '废旧手机，每单15%收益，单件收益高达75元', description: '废旧手机每单15%收益', status: '生效中' },
+    { id: 'B07', name: '正品鞋20%两级收益', category: '收益类', icon: '鞋', order: 70, history: [], shortDescription: '正品鞋20%两级收益', detailDescription: '正品鞋，20%两级收益，单笔收益高达100元', description: '正品鞋20%两级收益', status: '生效中' },
+    { id: 'B08', name: '正品服20%两级收益', category: '收益类', icon: '服', order: 80, history: [], shortDescription: '正品服20%两级收益', detailDescription: '正品服，20%两级收益，单笔收益高达100元', description: '正品服20%两级收益', status: '生效中' },
+    { id: 'B09', name: '团队独立收益后台', category: '收益类', icon: '台', order: 90, history: [], shortDescription: '实时查看团队收益与数据', detailDescription: '拥有团队独立收益后台，实时查看团队收益明细、收益结算与数据报表', description: '实时查看团队收益与数据', status: '生效中' },
+    { id: 'B10', name: '旧衣回收60%收益', category: '收益类', icon: '衣', order: 100, history: [], shortDescription: '旧衣回收60%收益', detailDescription: '旧衣回收窗口，60%收益，上不封顶', description: '旧衣回收60%收益', status: '生效中' },
+    { id: 'B11', name: '普鞋回收20%收益', category: '收益类', icon: '普', order: 110, history: [], shortDescription: '普鞋回收20%收益', detailDescription: '普鞋回收窗口，20%收益，上不封顶', description: '普鞋回收20%收益', status: '生效中' },
+    { id: 'B12', name: '废旧手机20%两级收益', category: '收益类', icon: '机', order: 120, history: [], shortDescription: '废旧手机20%两级收益', detailDescription: '废旧手机，20%两级收益，单笔收益高达100元', description: '废旧手机20%两级收益', status: '生效中' },
     { id: 'B13', name: '开通店主权限', category: '收益类', icon: '开', order: 130, history: [], shortDescription: '可开通店主并获得管理收益', detailDescription: '拥有开通店主权限，获得5%-10%管理收益', description: '可开通店主并获得管理收益', status: '生效中' },
-    { id: 'B14', name: '团队佣金1%', category: '收益类', icon: '团', order: 140, history: [], shortDescription: '指定类目团队佣金1%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队佣金1%', description: '指定类目团队佣金1%', status: '生效中' },
+    { id: 'B14', name: '团队收益1%', category: '收益类', icon: '团', order: 140, history: [], shortDescription: '指定类目团队收益1%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队收益1%', description: '指定类目团队收益1%', status: '生效中' },
     { id: 'B15', name: '团队数据看板', category: '收益类', icon: '看', order: 150, history: [], shortDescription: '查看团队运营与业绩统计', detailDescription: '拥有团队数据看板，实时查看团队运营数据、店主发展与业绩统计', description: '查看团队运营与业绩统计', status: '生效中' },
-    { id: 'B16', name: '团队佣金2%', category: '收益类', icon: '团', order: 160, history: [], shortDescription: '指定类目团队佣金2%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队佣金2%', description: '指定类目团队佣金2%', status: '生效中' },
-    { id: 'B17', name: '团队佣金3%', category: '收益类', icon: '团', order: 170, history: [], shortDescription: '指定类目团队佣金3%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队佣金3%', description: '指定类目团队佣金3%', status: '生效中' },
-    { id: 'B18', name: '团队佣金4%', category: '收益类', icon: '团', order: 180, history: [], shortDescription: '指定类目团队佣金4%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队佣金4%', description: '指定类目团队佣金4%', status: '生效中' },
-    { id: 'B19', name: '团队佣金5%', category: '收益类', icon: '团', order: 190, history: [], shortDescription: '指定类目团队佣金5%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队佣金5%', description: '指定类目团队佣金5%', status: '生效中' },
-    { id: 'B20', name: '区县佣金', category: '收益类', icon: '区', order: 200, history: [], shortDescription: '区县店主专属佣金权益', detailDescription: '区县店主享有区县佣金权益，具体结算以当前生效的区县合作政策为准', description: '区县店主专属佣金权益', status: '生效中' },
+    { id: 'B16', name: '团队收益2%', category: '收益类', icon: '团', order: 160, history: [], shortDescription: '指定类目团队收益2%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队收益2%', description: '指定类目团队收益2%', status: '生效中' },
+    { id: 'B17', name: '团队收益3%', category: '收益类', icon: '团', order: 170, history: [], shortDescription: '指定类目团队收益3%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队收益3%', description: '指定类目团队收益3%', status: '生效中' },
+    { id: 'B18', name: '团队收益4%', category: '收益类', icon: '团', order: 180, history: [], shortDescription: '指定类目团队收益4%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队收益4%', description: '指定类目团队收益4%', status: '生效中' },
+    { id: 'B19', name: '团队收益5%', category: '收益类', icon: '团', order: 190, history: [], shortDescription: '指定类目团队收益5%', detailDescription: '享受正品鞋服/废旧手机/普鞋/旧衣类目，团队收益5%', description: '指定类目团队收益5%', status: '生效中' },
+    { id: 'B20', name: '区县收益', category: '收益类', icon: '区', order: 200, history: [], shortDescription: '区县店主专属收益权益', detailDescription: '区县店主享有区县收益权益，具体结算以当前生效的区县合作政策为准', description: '区县店主专属收益权益', status: '生效中' },
+    { id: 'B21', name: '图书50%收益', category: '收益类', icon: '书', order: 210, history: [], shortDescription: '图书类目50%收益', detailDescription: '图书类目，50%收益，上不封顶', description: '图书类目50%收益', status: '生效中' },
+    { id: 'B22', name: '图书70%两级收益', category: '收益类', icon: '书', order: 220, history: [], shortDescription: '图书类目70%两级收益', detailDescription: '图书类目，70%两级收益，上不封顶', description: '图书类目70%两级收益', status: '生效中' },
+    { id: 'B23', name: '享受团队收益晋升路径', category: '收益类', icon: '升', order: 230, history: [], shortDescription: '团队收益晋升路径', detailDescription: '享受团队收益晋升路径', description: '团队收益晋升路径', status: '生效中' },
     { id: 'O01', name: '0基础线上回收培训', category: '运营类', icon: '学', order: 10, history: [], shortDescription: '0基础线上回收入门培训', detailDescription: '0基础玩转线上回收，解锁新媒体平台变现新玩法（抖音、视频号、闲鱼、小红书）', description: '0基础线上回收入门培训', status: '生效中' },
     { id: 'O02', name: '每月30条视频素材', category: '运营类', icon: '视', order: 20, history: [], shortDescription: '每月30条成片视频素材', detailDescription: '每月获赠30条成片视频素材，每日1条', description: '每月30条成片视频素材', status: '生效中' },
     { id: 'O03', name: '进阶店主交流群', category: '运营类', icon: '群', order: 30, history: [], shortDescription: '公司进阶店主交流群', detailDescription: '公司进阶店主交流群', description: '公司进阶店主交流群', status: '生效中' },
@@ -98,12 +105,12 @@
   ];
 
   const countyLevelBenefitIds = model.resolveSpecialLevelBenefitIds(levels, benefits, {
-    sourceLevel: 15,
+    sourceLevel: 17,
     includeBenefitId: 'B20',
-    excludedNameKeywords: ['团队佣金'],
+    excludedNameKeywords: ['团队收益'],
   });
   levels.push({
-    level: 99, identity: '区县店主', condition: '仅支持后台手动调整', relation: '人工指定',
+    level: 99, identity: '区县合伙人', condition: '仅支持后台手动调整', relation: '不适用',
     benefitIds: countyLevelBenefitIds, enabled: true, targets: [0, 0, 0], conditionEnabled: [false, false, false],
     directOwnerMinLevel: 5, upgradeMode: '手动调整', special: true, autoUpgrade: false,
   });
@@ -208,12 +215,12 @@
   }
 
   function renderDashboard() {
-    return `${pageHead('<button class="primary-button" data-section="levels">管理等级与权益</button>')}${dashboardStats()}<section class="panel-grid dashboard-main"><article class="panel dashboard-level-panel"><div class="panel-head"><h2>等级分布</h2><span class="live-update"><i></i>实时更新 · <b data-level-live-time>--:--:--</b></span></div>${[['LV1 普通用户',88,6340],['LV2—LV5',72,3660],['LV6—LV8',43,1810],['LV9—LV11',18,758],['LV12 超级合伙人',4,112]].map((row) => `<div class="bar-row"><span>${row[0]}</span><div class="bar-track"><i style="width:${row[1]}%"></i></div><b>${row[2]}</b></div>`).join('')}</article></section><section class="panel-grid dashboard-secondary"><article class="panel"><div class="panel-head"><h2>本月升级流向</h2><span>共642人</span></div><div class="flow-list">${[['LV1 → LV2',168,72],['LV2 → LV3',146,63],['LV4 → LV5',112,49],['LV7 → LV8',84,36],['LV10 → LV11',32,14]].map((row) => `<div><span>${row[0]}</span><i><b style="width:${row[2]}%"></b></i><strong>${row[1]}人</strong></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><h2>即将升级店主分布</h2><span>下一级完成度 ≥ 80%</span></div><div class="near-levels"><article><strong>426</strong><span>待升 LV2</span></article><article><strong>318</strong><span>待升 LV5</span></article><article><strong>246</strong><span>待升 LV8</span></article><article><strong>86</strong><span>已达标</span></article></div><button class="text-button" data-section="owners">查看即将升级店主明细 →</button></article></section>`;
+    return `${pageHead('<button class="primary-button" data-section="levels">管理等级与权益</button>')}${dashboardStats()}<section class="panel-grid dashboard-main"><article class="panel dashboard-level-panel"><div class="panel-head"><h2>等级分布</h2><span class="live-update"><i></i>实时更新 · <b data-level-live-time>--:--:--</b></span></div>${[['LV1 普通用户',88,6340],['LV2—LV5',72,3660],['LV6 星享店主',43,1810],['LV7—LV11 超级店主',18,758],['LV12—LV17 超级合伙人',4,112]].map((row) => `<div class="bar-row"><span>${row[0]}</span><div class="bar-track"><i style="width:${row[1]}%"></i></div><b>${row[2]}</b></div>`).join('')}</article></section><section class="panel-grid dashboard-secondary"><article class="panel"><div class="panel-head"><h2>本月升级流向</h2><span>共642人</span></div><div class="flow-list">${[['LV1 → LV2',168,72],['LV2 → LV3',146,63],['LV4 → LV5',112,49],['LV7 → LV8',84,36],['LV10 → LV11',32,14]].map((row) => `<div><span>${row[0]}</span><i><b style="width:${row[2]}%"></b></i><strong>${row[1]}人</strong></div>`).join('')}</div></article><article class="panel"><div class="panel-head"><h2>即将升级店主分布</h2><span>下一级完成度 ≥ 80%</span></div><div class="near-levels"><article><strong>426</strong><span>待升 LV2</span></article><article><strong>318</strong><span>待升 LV5</span></article><article><strong>246</strong><span>待升 LV8</span></article><article><strong>86</strong><span>已达标</span></article></div><button class="text-button" data-section="owners">查看即将升级店主明细 →</button></article></section>`;
   }
 
   function renderLevels() {
     const rows = levels.filter((row) => !state.search || `${row.level}${row.identity}${row.condition}`.includes(state.search));
-    return `${pageHead()}<div class="filter-bar"><input type="search" data-table-search placeholder="搜索等级或达成条件" value="${state.search}"><span class="filter-meta">共 ${levels.length} 个等级</span></div><section class="data-table"><div class="table-row head level-table"><span>等级</span><span>达成条件</span><span>累计权益</span><span>升级方式</span><span>开关</span><span>操作</span></div>${rows.map((row) => `<div class="table-row level-table"><span><strong>LV${row.level}</strong><small>${row.level === 1 ? '普通用户' : row.special ? row.identity : '店主等级'}</small></span><span class="condition-summary">${row.condition}<small>${row.relation}</small></span><span><strong>${row.benefitIds.length} 项</strong><small>当前累计生效权益</small></span><span>${row.upgradeMode}</span>${pill(row.special ? '人工维护' : row.enabled ? '已开启' : '已暂停')}${row.level === 1 ? '<button type="button" data-toast="LV1为固定等级，不可编辑">查看</button>' : `<button type="button" data-edit-level="${row.level}">编辑</button>`}</div>`).join('')}</section>`;
+    return `${pageHead()}<div class="filter-bar"><input type="search" data-table-search placeholder="搜索等级、身份或达成条件" value="${state.search}"><span class="filter-meta">共 ${levels.length} 个等级</span></div><section class="data-table"><div class="table-row head level-table"><span>等级</span><span>身份</span><span>达成条件</span><span>累计权益</span><span>升级方式</span><span>开关</span><span>操作</span></div>${rows.map((row) => `<div class="table-row level-table"><span><strong>LV${row.level}</strong></span><span><strong>${row.identity}</strong></span><span class="condition-summary">${row.condition}<small>${row.relation}</small></span><span><strong>${row.benefitIds.length} 项</strong></span><span>${row.upgradeMode}</span>${pill(row.special ? '人工维护' : row.enabled ? '已开启' : '已暂停')}<button type="button" data-edit-level="${row.level}">编辑</button></div>`).join('')}</section>`;
   }
 
   function renderVersions() {
@@ -266,7 +273,7 @@
         return `<div class="table-row benefit-table" draggable="true" data-benefit-row="${row.id}" data-benefit-drag="${row.id}" data-benefit-category="${row.category}"><button type="button" class="drag-handle" aria-label="拖拽调整${row.name}排序" title="仅可在${row.category}内拖拽排序">⋮⋮</button><span class="benefit-name"><i>${row.icon || '权'}</i><span><strong>${row.name}</strong><small>${row.id}</small></span></span><span class="benefit-copy"><strong>${row.shortDescription || '—'}</strong></span><span class="benefit-copy detail"><small>${row.detailDescription || row.description || '—'}</small></span><span class="reference-summary">${referenced ? `<strong>${references.slice(0, 4).join('、')}${references.length > 4 ? '等' : ''}</strong><small>当前等级引用</small>` : '<strong>未引用</strong><small>可停用或删除</small>'}</span>${pill(row.status)}<div class="row-actions"><button data-view-benefit="${row.id}">查看</button><button data-edit-benefit="${row.id}">编辑</button><button data-toggle-benefit="${row.id}" ${referenced && row.status === '生效中' ? 'class="locked-action" title="当前等级引用中"' : ''}>${row.status === '生效中' ? '停用' : '恢复'}</button><button class="danger-link ${referenced ? 'locked-action' : ''}" data-delete-benefit="${row.id}" ${referenced ? 'title="当前等级引用中"' : ''}>删除</button></div></div>`;
       }).join('')}`;
     }).join('');
-    return `${pageHead('<button class="primary-button" data-new-benefit>新建权益</button>')}<div class="scope-note"><b>只维护权益基础信息</b><span>佣金比例、次数、额度等业务参数由对应业务系统维护，本页不提供规则参数修改。</span></div><div class="filter-bar"><input type="search" data-table-search placeholder="搜索权益名称、类别或说明" value="${state.search}"><span class="filter-meta">共 ${rows.length} 项权益</span></div><section class="data-table benefit-library"><div class="table-row head benefit-table"><span></span><span>权益名称</span><span>短说明</span><span>详细说明</span><span>当前引用</span><span>状态</span><span>操作</span></div>${groupedRows}</section><p class="sort-note">排序说明：拖拽仅会改变同一类别中的展示顺序；被等级引用的权益不可停用或删除。</p>`;
+    return `${pageHead('<button class="primary-button" data-new-benefit>新建权益</button>')}<div class="scope-note"><b>只维护权益基础信息</b><span>收益比例、次数、额度等业务参数由对应业务系统维护，本页不提供规则参数修改。</span></div><div class="filter-bar"><input type="search" data-table-search placeholder="搜索权益名称、类别或说明" value="${state.search}"><span class="filter-meta">共 ${rows.length} 项权益</span></div><section class="data-table benefit-library"><div class="table-row head benefit-table"><span></span><span>权益名称</span><span>短说明</span><span>详细说明</span><span>当前引用</span><span>状态</span><span>操作</span></div>${groupedRows}</section><p class="sort-note">排序说明：拖拽仅会改变同一类别中的展示顺序；被等级引用的权益不可停用或删除。</p>`;
   }
 
   function renderIssuance() {
@@ -279,7 +286,7 @@
 
   function renderAgents() {
     const rows = agents.filter((row) => !state.search || `${row.name}${row.id}${row.phone}`.includes(state.search));
-    return `${pageHead()}<div class="filter-bar"><input type="search" data-table-search placeholder="搜索店主、店铺、编号或手机号" value="${state.search}"><select><option>全部等级</option><option>LV2—LV5</option><option>LV6—LV8</option><option>LV9—LV12</option></select><select><option>全部状态</option><option>正常</option><option>预警</option><option>休眠</option></select><span class="filter-meta">共12,680名店主</span></div><section class="data-table"><div class="table-row head owner-table"><span>店主 / 店铺</span><span>等级</span><span>客户 / 团队订单</span><span>已结算店铺收益</span><span>开通时间</span><span>操作</span></div>${rows.map((row) => `<div class="table-row owner-table"><span><strong>${row.name}</strong><small>${row.storeName} · ${row.id} · ${row.phone}</small></span><span><strong>${row.level}</strong><small>${row.identity}</small></span><span>${row.customers}人 / ${row.orders}笔<small>进度 ${row.progress}</small></span><strong>${row.commission}</strong><span>${row.openedAt}</span><button data-agent-detail="${row.id}">详情</button></div>`).join('')}</section>`;
+    return `${pageHead()}<div class="filter-bar"><input type="search" data-table-search placeholder="搜索店主、店铺、编号或手机号" value="${state.search}"><select><option>全部等级</option><option>LV2—LV5</option><option>LV6—LV8</option><option>LV9—LV11</option><option>LV12—LV17</option></select><select><option>全部状态</option><option>正常</option><option>预警</option><option>休眠</option></select><span class="filter-meta">共12,680名店主</span></div><section class="data-table"><div class="table-row head owner-table"><span>店主 / 店铺</span><span>等级</span><span>客户 / 团队订单</span><span>已结算店铺收益</span><span>开通时间</span><span>操作</span></div>${rows.map((row) => `<div class="table-row owner-table"><span><strong>${row.name}</strong><small>${row.storeName} · ${row.id} · ${row.phone}</small></span><span><strong>${row.level}</strong><small>${row.identity}</small></span><span>${row.customers}人 / ${row.orders}笔<small>进度 ${row.progress}</small></span><strong>${row.commission}</strong><span>${row.openedAt}</span><button data-agent-detail="${row.id}">详情</button></div>`).join('')}</section>`;
   }
 
   function renderRegistrations() {
@@ -322,9 +329,9 @@
   }
 
   function renderMigration() {
-    const mapping = [['成长店主','LV2','2,684'],['轻享店主','LV5','6,420'],['星享店主','LV8','2,460'],['超级店主','LV11','1,004'],['超级合伙人','LV12','112']];
+    const mapping = [['成长店主','LV2','2,684'],['轻享店主','LV5','6,420'],['星享店主','LV6','2,460'],['超级店主','LV11','1,004'],['超级合伙人','LV12','112']];
     const resultCopy = state.migrationStep ? ['','试跑完成：12,680人可迁移，0人无映射，86人迁移后立即满足下一级。','正式迁移完成：12,677人成功，3人失败待重跑，自动升级仍保持关闭。','结果校验完成：失败记录已重跑，异常为0，可启用自动升级。'][state.migrationStep] : '请先执行试跑，确认映射、数量和影响范围。';
-    return `${pageHead()}<section class="migration-hero"><div><h2>存量店主等效迁移</h2><p>成长店主 → LV2 · 轻享店主 → LV5 · 星享店主 → LV8 · 超级店主 → LV11 · 超级合伙人 → LV12</p></div><div class="migration-steps"><button data-migration="1" class="${state.migrationStep === 1 ? 'active' : ''}">1. 执行试跑</button><button data-migration="2" class="${state.migrationStep === 2 ? 'active' : ''}" ${state.migrationStep < 1 ? 'disabled' : ''}>2. 正式迁移</button><button data-migration="3" class="${state.migrationStep === 3 ? 'active' : ''}" ${state.migrationStep < 2 ? 'disabled' : ''}>3. 结果校验</button></div></section><section class="mapping-grid">${mapping.map((row) => `<article><span>${row[0]}</span><b>→</b><strong>${row[1]}</strong><small>${row[2]}人</small></article>`).join('')}</section><section class="rule-summary migration-summary"><article><span>待迁移</span><strong>12,680</strong><small>全部存量店主</small></article><article><span>映射完整度</span><strong>100%</strong><small>所有老身份均有目标等级</small></article><article><span>预计立即满足下一级</span><strong>86</strong><small>迁移后仅记录，不立即升级</small></article><article class="pending"><span>未处理异常</span><strong>${state.migrationStep === 2 ? 3 : 0}</strong><small>全部清零后才可开启自动升级</small></article></section><section class="panel migration-result"><div class="panel-head"><h2>最近执行结果</h2><span>${state.migrationStep ? '步骤已记录' : '尚未执行'}</span></div><p>${resultCopy}</p><div class="migration-condition"><strong>自动升级启用条件</strong><span class="${state.migrationStep === 3 ? 'ready' : ''}">迁移完成 · 异常清零 · 结果校验通过</span></div></section>`;
+    return `${pageHead()}<section class="migration-hero"><div><h2>存量店主等效迁移</h2><p>成长店主 → LV2 · 轻享店主 → LV5 · 星享店主 → LV6 · 超级店主 → LV11 · 超级合伙人 → LV12</p></div><div class="migration-steps"><button data-migration="1" class="${state.migrationStep === 1 ? 'active' : ''}">1. 执行试跑</button><button data-migration="2" class="${state.migrationStep === 2 ? 'active' : ''}" ${state.migrationStep < 1 ? 'disabled' : ''}>2. 正式迁移</button><button data-migration="3" class="${state.migrationStep === 3 ? 'active' : ''}" ${state.migrationStep < 2 ? 'disabled' : ''}>3. 结果校验</button></div></section><section class="mapping-grid">${mapping.map((row) => `<article><span>${row[0]}</span><b>→</b><strong>${row[1]}</strong><small>${row[2]}人</small></article>`).join('')}</section><section class="rule-summary migration-summary"><article><span>待迁移</span><strong>12,680</strong><small>全部存量店主</small></article><article><span>映射完整度</span><strong>100%</strong><small>所有老身份均有目标等级</small></article><article><span>预计立即满足下一级</span><strong>86</strong><small>迁移后仅记录，不立即升级</small></article><article class="pending"><span>未处理异常</span><strong>${state.migrationStep === 2 ? 3 : 0}</strong><small>全部清零后才可开启自动升级</small></article></section><section class="panel migration-result"><div class="panel-head"><h2>最近执行结果</h2><span>${state.migrationStep ? '步骤已记录' : '尚未执行'}</span></div><p>${resultCopy}</p><div class="migration-condition"><strong>自动升级启用条件</strong><span class="${state.migrationStep === 3 ? 'ready' : ''}">迁移完成 · 异常清零 · 结果校验通过</span></div></section>`;
   }
 
   function refreshDashboardLiveTime() {
@@ -373,6 +380,9 @@
     const upgradeMode = row.upgradeMode || '自动升级';
     const isSpecial = row.special === true;
     const conditionEnabled = row.conditionEnabled || row.targets.map((target) => target > 0);
+    const conditionsLocked = isSpecial || !conditionEnabled.some(Boolean);
+    const identityOptions = levelIdentityOptions
+      .map((identity) => `<option ${row.identity === identity ? 'selected' : ''}>${identity}</option>`).join('');
     const directOwnerLevelOptions = Array.from({ length: 11 }, (_, index) => index + 2)
       .map((level) => `<option value="${level}" ${Number(row.directOwnerMinLevel || 5) === level ? 'selected' : ''}>LV${level}</option>`).join('');
     const benefitRows = state.levelBenefitDraft.map((id) => {
@@ -382,13 +392,18 @@
       return `<article class="level-benefit-row"><div class="level-benefit-name"><strong>${item.name}</strong><small>当前等级权益</small></div><span class="level-benefit-parameter-summary">${parameterSummary}</span><button type="button" class="level-benefit-remove" data-remove-level-benefit="${id}" aria-label="移除${item.name}"><span aria-hidden="true">×</span><span>移除</span></button></article>`;
     }).join('');
     const conditionRows = names.map((name, index) => {
-      const active = !isSpecial && conditionEnabled[index] !== false;
-      const toggle = `<button class="condition-switch ${active ? 'active' : ''}" type="button" data-condition-toggle="${index}" aria-pressed="${active}" ${isSpecial ? 'disabled' : ''}><i></i><span>${active ? '已启用' : '已停用'}</span></button>`;
+      const active = !conditionsLocked && conditionEnabled[index] !== false;
+      const toggle = `<button class="condition-switch ${active ? 'active' : ''}" type="button" data-condition-toggle="${index}" aria-pressed="${active}" ${conditionsLocked ? 'disabled' : ''}><i></i><span>${active ? '已启用' : '已停用'}</span></button>`;
       const target = `<label class="input-with-unit"><input type="number" min="0" value="${row.targets[index]}" data-level-target="${index}" aria-label="${name}门槛" ${active ? '' : 'disabled'}><span>${units[index]}</span></label>`;
       if (index === 2) return `<div class="field"><label>${name}</label><div class="field-row direct-owner-condition-row">${toggle}<select data-direct-owner-min-level aria-label="直推店主最低等级" ${active ? '' : 'disabled'}>${directOwnerLevelOptions}</select>${target}</div></div>`;
       return `<div class="field"><label>${name}</label><div class="field-row">${toggle}${target}</div></div>`;
     }).join('');
-    drawerBody.innerHTML = `<section class="form-section"><div class="form-section-title"><strong>升级条件</strong><span>${isSpecial ? '特殊等级仅支持后台手动调整' : '固定三类经营结果'}</span></div>${state.levelMode === 'create' ? `<div class="field"><label>等级身份</label><input data-level-identity value="${row.identity || ''}" placeholder="请输入等级身份"></div>` : ''}${conditionRows}<div class="field"><label>条件关系</label><select id="level-relation" ${isSpecial ? 'disabled' : ''}><option ${row.relation === '全部满足' ? 'selected' : ''}>全部满足</option><option ${row.relation === '任一满足' ? 'selected' : ''}>任一满足</option><option ${row.relation === '人工指定' ? 'selected' : ''}>人工指定</option></select></div><div class="field"><label>升级方式</label><select id="level-upgrade-mode" ${isSpecial ? 'disabled' : ''}><option ${upgradeMode === '自动升级' ? 'selected' : ''}>自动升级</option><option ${upgradeMode === '线下联系' ? 'selected' : ''}>线下联系</option><option ${upgradeMode === '手动调整' ? 'selected' : ''}>手动调整</option></select></div></section><section class="form-section"><div class="form-section-title"><strong>等级权益</strong><span>当前等级独立配置 · 同一权益规则仅可选择一项</span></div><div class="level-benefit-list">${benefitRows}</div><button type="button" class="add-benefit-button" data-add-level-benefit>＋ 添加权益</button></section>`;
+    const relationOptions = conditionsLocked
+      ? '<option selected>不适用</option>'
+      : `<option ${row.relation === '全部满足' ? 'selected' : ''}>全部满足</option><option ${row.relation === '任一满足' ? 'selected' : ''}>任一满足</option>`;
+    const upgradeModeOptions = ['固定等级', '开通后生效', '自动升级', '线下联系', '手动调整']
+      .map((mode) => `<option ${upgradeMode === mode ? 'selected' : ''}>${mode}</option>`).join('');
+    drawerBody.innerHTML = `<section class="form-section"><div class="form-section-title"><strong>升级条件</strong><span>${isSpecial ? '特殊等级仅支持后台手动调整' : conditionsLocked ? '当前等级无自动升级条件' : '固定三类经营结果'}</span></div><div class="field"><label>等级身份</label><select data-level-identity>${identityOptions}</select></div>${conditionRows}<div class="field"><label>条件关系</label><select id="level-relation" ${conditionsLocked ? 'disabled' : ''}>${relationOptions}</select></div><div class="field"><label>升级方式</label><select id="level-upgrade-mode" ${conditionsLocked ? 'disabled' : ''}>${upgradeModeOptions}</select></div></section><section class="form-section"><div class="form-section-title"><strong>等级权益</strong><span>当前等级独立配置 · 同组权益仅可选择一项</span></div><div class="level-benefit-list">${benefitRows}</div><button type="button" class="add-benefit-button" data-add-level-benefit>＋ 添加权益</button></section>`;
   }
 
   function openLevelDrawer(level, mode = 'edit') {
@@ -606,10 +621,10 @@
     if (action === 'recalculate') { showToast('等级重新计算已提交，可在任务中心查看'); return; }
     if (action === 'level') {
       const levelOptions = levels.filter((row) => row.level > 1).map((row) => {
-        const label = row.special ? 'LV99 区县店主' : `LV${row.level} ${row.identity}`;
+        const label = row.special ? `LV99 ${row.identity}` : `LV${row.level} ${row.identity}`;
         return `<option value="${row.level}" ${agent.level === `LV${row.level}` ? 'selected' : ''}>${label}</option>`;
       }).join('');
-      openDrawer(`手动调级 · ${agent.name}`, '店主等级调整', `<section class="form-section"><div class="risk-note">手动调级会立即重新计算权益和店铺收益方案，操作将记录在升级历史中。</div><div class="field"><label>目标等级</label><select id="agent-target-level">${levelOptions}</select><small>LV99 区县店主仅支持后台手动调整，不参与自动升级。</small></div><div class="field"><label>调整原因（必填）</label><textarea id="agent-level-reason" placeholder="请输入审批单号或业务原因"></textarea></div></section>`, '<button class="button" data-close-drawer>取消</button><button class="primary-button" data-save-agent>确认调级</button>');
+      openDrawer(`手动调级 · ${agent.name}`, '店主等级调整', `<section class="form-section"><div class="risk-note">手动调级会立即重新计算权益和店铺收益方案，操作将记录在升级历史中。</div><div class="field"><label>目标等级</label><select id="agent-target-level">${levelOptions}</select><small>LV99 区县合伙人仅支持后台手动调整，不参与自动升级。</small></div><div class="field"><label>调整原因（必填）</label><textarea id="agent-level-reason" placeholder="请输入审批单号或业务原因"></textarea></div></section>`, '<button class="button" data-close-drawer>取消</button><button class="primary-button" data-save-agent>确认调级</button>');
       return;
     }
     openDrawer(`状态调整 · ${agent.name}`, '店主状态调整', `<section class="form-section"><div class="field-row equal"><div class="field"><label>当前状态</label><input value="${agent.status}" disabled></div><div class="field"><label>目标状态</label><select id="agent-target-status">${['正常','预警','休眠','限权','冻结','终止'].map((status) => `<option ${status === agent.status ? 'selected' : ''}>${status}</option>`).join('')}</select></div></div><div class="field"><label>标准原因</label><select><option>近90天无有效经营</option><option>风险审核要求限制部分能力</option><option>申诉复核通过</option><option>其他（需补充备注）</option></select></div><div class="field"><label>限权项</label><div class="check-grid"><label><input type="checkbox" checked> 暂停升级</label><label><input type="checkbox"> 暂停新增店主</label><label><input type="checkbox"> 暂停新店铺收益</label><label><input type="checkbox"> 隐藏运营素材</label></div></div><div class="field-row equal"><div class="field"><label>生效时间</label><select><option>立即生效</option><option>指定时间</option></select></div><div class="field"><label>权益影响</label><input value="保留历史收益，暂停新发放" disabled></div></div><div class="field"><label>内部备注</label><textarea placeholder="仅后台可见"></textarea></div><div class="field"><label>前台文案</label><textarea>您的店主账户状态已调整，如有疑问请联系客服申诉。</textarea></div></section>`, '<button class="button" data-close-drawer>取消</button><button class="primary-button" data-save-agent>确认调整</button>');
@@ -709,10 +724,7 @@
       const validation = model.validateLevelBenefitSelection(levels, benefits, level, state.levelBenefitDraft);
       if (!validation.valid) { showToast(validation.error); return; }
       const row = state.levelMode === 'create' ? state.levelDraftRow : levels.find((item) => item.level === level);
-      if (state.levelMode === 'create') {
-        row.identity = drawerBody.querySelector('[data-level-identity]').value.trim();
-        if (!row.identity) { showToast('请输入等级身份'); drawerBody.querySelector('[data-level-identity]').focus(); return; }
-      }
+      row.identity = drawerBody.querySelector('[data-level-identity]').value;
       row.targets = [...drawerBody.querySelectorAll('[data-level-target]')].map((input) => Number(input.value));
       row.conditionEnabled = [...drawerBody.querySelectorAll('[data-condition-toggle]')].map((button) => button.classList.contains('active'));
       row.directOwnerMinLevel = Number(drawerBody.querySelector('[data-direct-owner-min-level]').value) || 5;
@@ -723,10 +735,13 @@
       const conditionParts = [];
       if (row.special) {
         row.condition = '仅支持后台手动调整';
-        row.relation = '人工指定';
+        row.relation = '不适用';
         row.upgradeMode = '手动调整';
         row.conditionEnabled = [false, false, false];
         row.autoUpgrade = false;
+      } else if (!row.conditionEnabled.some(Boolean)) {
+        row.condition = '—（未标注）';
+        row.relation = '不适用';
       } else {
         if (row.conditionEnabled[0]) conditionParts.push(`推荐${row.targets[0]}人有效用户`);
         if (row.conditionEnabled[1]) conditionParts.push(`收益超${row.targets[1]}元`);
@@ -939,19 +954,13 @@
 
   document.addEventListener('change', (event) => {
     if (event.target.matches('[data-benefit-option]')) {
-      const selectedBenefit = benefits.find((item) => item.id === event.target.value);
-      if (event.target.checked && selectedBenefit?.kind === 'parameterized' && selectedBenefit.templateId) {
-        [...state.benefitPickerSelected].forEach((benefitId) => {
-          const current = benefits.find((item) => item.id === benefitId);
-          if (current?.kind === 'parameterized' && current.templateId === selectedBenefit.templateId) state.benefitPickerSelected.delete(benefitId);
-        });
-        benefitPickerList.querySelectorAll('[data-benefit-option]:checked').forEach((input) => {
-          const current = benefits.find((item) => item.id === input.value);
-          if (input !== event.target && current?.templateId === selectedBenefit.templateId) input.checked = false;
-        });
+      if (event.target.checked) {
+        const normalized = model.mergeBenefitSelection([...state.benefitPickerSelected], [event.target.value], benefits);
+        state.benefitPickerSelected = new Set(normalized);
+      } else {
+        state.benefitPickerSelected.delete(event.target.value);
       }
-      if (event.target.checked) state.benefitPickerSelected.add(event.target.value); else state.benefitPickerSelected.delete(event.target.value);
-      benefitPickerCount.textContent = `已选择 ${state.benefitPickerSelected.size} 项`;
+      renderBenefitPicker();
     }
     if (event.target.matches('#benefit-kind')) {
       const parameterized = event.target.value === 'parameterized';

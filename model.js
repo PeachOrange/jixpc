@@ -2,7 +2,7 @@
   const migrationMap = {
     成长代理: 'LV2',
     轻享代理: 'LV5',
-    星享代理: 'LV8',
+    星享代理: 'LV6',
     超级代理: 'LV11',
     超级合伙人: 'LV12',
   };
@@ -31,6 +31,18 @@
     证书类: 2,
     鉴定类: 3,
   };
+
+  const benefitExclusionGroups = [
+    { id: 'authentic-shoes', label: '正品鞋收益', benefitIds: ['B02', 'B07'] },
+    { id: 'authentic-clothes', label: '正品服收益', benefitIds: ['B03', 'B08'] },
+    { id: 'ordinary-shoes', label: '普鞋回收收益', benefitIds: ['B04', 'B11'] },
+    { id: 'used-clothes', label: '旧衣回收收益', benefitIds: ['B05', 'B10'] },
+    { id: 'used-phones', label: '废旧手机收益', benefitIds: ['B06', 'B12'] },
+    { id: 'monthly-videos', label: '每月视频素材', benefitIds: ['O02', 'O05'] },
+    { id: 'monthly-appraisals', label: '每月鉴定次数', benefitIds: ['A01', 'A02'] },
+    { id: 'books', label: '图书收益', benefitIds: ['B21', 'B22'] },
+    { id: 'team-commission', label: '团队收益', benefitIds: ['B14', 'B16', 'B17', 'B18', 'B19'] },
+  ];
 
   const businessCategories = ['正品鞋', '正品服', '废旧手机', '普鞋', '旧衣', '旧书'];
 
@@ -93,6 +105,18 @@
     return businessCategories.slice();
   }
 
+  function getBenefitExclusion(benefitId) {
+    const group = benefitExclusionGroups.find((item) => item.benefitIds.includes(benefitId));
+    return group ? cloneValue(group) : null;
+  }
+
+  function benefitExclusionKey(benefit) {
+    const fixedGroup = benefit && getBenefitExclusion(benefit.id);
+    if (fixedGroup) return `fixed:${fixedGroup.id}`;
+    if (benefit && benefit.kind === 'parameterized' && benefit.templateId) return `template:${benefit.templateId}`;
+    return '';
+  }
+
   function summarizeBenefitConfiguration(benefit) {
     const values = benefit && benefit.values || {};
     if (benefit.templateId === 'newcomer-reward') return `${values.amount || 0} 元`;
@@ -128,8 +152,14 @@
 
   function validateLevelBenefitSelection(levelRecords, benefits, level, benefitIds) {
     const templateIds = new Set();
+    const exclusionKeys = new Set();
     for (const benefitId of benefitIds || []) {
       const benefit = (benefits || []).find((item) => item.id === benefitId);
+      const exclusionKey = benefitExclusionKey(benefit);
+      if (exclusionKey) {
+        if (exclusionKeys.has(exclusionKey)) return { valid: false, error: '同组权益只能选择一项' };
+        exclusionKeys.add(exclusionKey);
+      }
       if (benefit && benefit.kind === 'parameterized' && benefit.templateId) {
         if (templateIds.has(benefit.templateId)) return { valid: false, error: '同一权益规则只能选择一项权益' };
         templateIds.add(benefit.templateId);
@@ -324,19 +354,11 @@
     const result = [...new Set(current || [])];
     (selected || []).forEach((benefitId) => {
       const benefit = (benefits || []).find((item) => item.id === benefitId);
-      const exclusivityKey = benefit && benefit.name && benefit.name.includes('团队佣金')
-        ? 'team-commission'
-        : benefit && benefit.kind === 'parameterized' && benefit.templateId
-          ? `template:${benefit.templateId}`
-          : '';
+      const exclusivityKey = benefitExclusionKey(benefit);
       if (exclusivityKey) {
         for (let index = result.length - 1; index >= 0; index -= 1) {
           const existing = (benefits || []).find((item) => item.id === result[index]);
-          const existingKey = existing && existing.name && existing.name.includes('团队佣金')
-            ? 'team-commission'
-            : existing && existing.kind === 'parameterized' && existing.templateId
-              ? `template:${existing.templateId}`
-              : '';
+          const existingKey = benefitExclusionKey(existing);
           if (existingKey === exclusivityKey) result.splice(index, 1);
         }
       }
@@ -463,10 +485,9 @@
   function validateRule(rule) {
     const errors = [];
     const enabled = (rule.conditions || []).filter((item) => item.enabled !== false);
-    if (!enabled.length && rule.level >= 2 && rule.level <= 11) errors.push('至少启用一个升级条件');
+    if (!enabled.length && rule.level >= 3 && rule.level <= 17) errors.push('至少启用一个升级条件');
     if (enabled.some((item) => !Number.isFinite(Number(item.target)) || Number(item.target) < 0)) errors.push('升级门槛必须为有效非负数');
     if (!rule.commissionVersion) errors.push('必须关联指定店铺收益方案版本');
-    if (rule.level === 12 && rule.upgradeMode && rule.upgradeMode !== 'offline') errors.push('LV12必须使用线下联系');
     return { valid: errors.length === 0, errors };
   }
 
@@ -523,6 +544,7 @@
     changeIssuanceStatus,
     deleteBenefit,
     getBusinessCategories,
+    getBenefitExclusion,
     getRuleTemplates,
     getAdminMenu,
     mergeBenefitSelection,

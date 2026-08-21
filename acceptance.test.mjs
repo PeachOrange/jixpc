@@ -37,34 +37,36 @@ test('等级与权益页签只保留等级规则和权益库', () => {
   assert.equal(views.includes('templates: renderRuleTemplates'), false);
 });
 
-test('后台等级固定为十五级并追加LV99特殊等级', () => {
+test('后台等级固定为十七级并追加LV99特殊等级', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const levelData = sourceSection(source, 'const levels = [', 'let benefits = [');
-  assert.equal((levelData.match(/level: \d+/g) || []).length, 15);
-  for (const level of Array.from({ length: 15 }, (_, index) => index + 1)) {
+  assert.equal((levelData.match(/level: \d+/g) || []).length, 17);
+  for (const level of Array.from({ length: 17 }, (_, index) => index + 1)) {
     assert.ok(levelData.includes(`level: ${level}`), `缺少 LV${level}`);
   }
   for (const marker of [
-    'level: 99', "identity: '区县店主'", "condition: '仅支持后台手动调整'",
-    "relation: '人工指定'", "upgradeMode: '手动调整'", 'special: true', 'autoUpgrade: false',
+    'level: 99', "identity: '区县合伙人'", "condition: '仅支持后台手动调整'",
+    "relation: '不适用'", "upgradeMode: '手动调整'", 'special: true', 'autoUpgrade: false',
   ]) assert.ok(source.includes(marker), `LV99配置缺少：${marker}`);
   const page = sourceSection(source, 'function renderLevels()', 'function renderVersions()');
   assert.equal(page.includes('data-new-level'), false);
   assert.ok(page.includes('共 ${levels.length} 个等级'));
 });
 
-test('权益库初始化为四类三十三项基础权益', () => {
+test('权益库初始化为四类三十六项基础权益并统一收益口径', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const data = sourceSection(source, 'let benefits = [', 'const benefitAuditLogs = []');
-  assert.equal((data.match(/id: '[A-Z]\d{2}'/g) || []).length, 33);
-  assert.equal((data.match(/category: '收益类'/g) || []).length, 20);
+  assert.equal((data.match(/id: '[A-Z]\d{2}'/g) || []).length, 36);
+  assert.equal((data.match(/category: '收益类'/g) || []).length, 23);
   assert.equal((data.match(/category: '运营类'/g) || []).length, 10);
   assert.equal((data.match(/category: '证书类'/g) || []).length, 1);
   assert.equal((data.match(/category: '鉴定类'/g) || []).length, 2);
   for (const marker of [
-    "name: '新人成交奖励'", "name: '团队佣金5%'", "name: '区县佣金'",
+    "name: '新人成交奖励'", "name: '团队收益5%'", "name: '区县收益'",
+    "name: '图书50%收益'", "name: '图书70%两级收益'", "name: '享受团队收益晋升路径'",
     "name: '0基础线上回收培训'", "name: '最高等级店主证书'", "name: '每月10次鉴定'",
   ]) assert.ok(data.includes(marker), `权益库缺少：${marker}`);
+  assert.equal(data.includes('佣金'), false, '权益库基础信息不应保留佣金字样');
   for (const marker of ['templateId:', 'values:', 'tiers:']) assert.equal(data.includes(marker), false);
 });
 
@@ -102,7 +104,7 @@ test('等级权益使用物化累计配置并取消新增等级入口', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const levelData = sourceSection(source, 'const levels = [', 'let benefits = [');
   assert.match(levelData, /level: 3[\s\S]*benefitIds: \['B01', 'B02', 'B03', 'O01'\]/);
-  assert.match(levelData, /level: 15[\s\S]*benefitIds: \[[^\]]*'B19'[^\]]*'C01'[^\]]*'A02'/);
+  assert.match(levelData, /level: 17[\s\S]*benefitIds: \[[^\]]*'B19'[^\]]*'C01'[^\]]*'A02'/);
   assert.ok(source.includes('level: 99'));
   assert.ok(source.includes('benefitIds: countyLevelBenefitIds'));
   const drawer = sourceSection(source, 'function renderLevelDrawer()', 'function openLevelDrawer(');
@@ -110,44 +112,45 @@ test('等级权益使用物化累计配置并取消新增等级入口', () => {
   assert.ok(drawer.includes('data-remove-level-benefit'));
 });
 
-test('LV12至LV15团队佣金互斥且每级只保留最高比例', () => {
+test('LV13至LV17团队收益同组替换且每级只保留最高比例', () => {
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const levelData = sourceSection(source, 'const levels = [', 'let benefits = [');
-  assert.match(levelData, /level: 12[\s\S]*benefitIds: \[[^\]]*'B16'[^\]]*\]/);
-  assert.match(levelData, /level: 13[\s\S]*benefitIds: \[[^\]]*'B17'[^\]]*\]/);
-  assert.match(levelData, /level: 14[\s\S]*benefitIds: \[[^\]]*'B18'[^\]]*\]/);
-  assert.match(levelData, /level: 15[\s\S]*benefitIds: \[[^\]]*'B19'[^\]]*\]/);
-  for (const [level, excluded] of [[12, ['B14']], [13, ['B14', 'B16']], [14, ['B14', 'B16', 'B17']], [15, ['B14', 'B16', 'B17', 'B18']]]) {
+  assert.match(levelData, /level: 13[\s\S]*benefitIds: \[[^\]]*'B14'[^\]]*\]/);
+  assert.match(levelData, /level: 14[\s\S]*benefitIds: \[[^\]]*'B16'[^\]]*\]/);
+  assert.match(levelData, /level: 15[\s\S]*benefitIds: \[[^\]]*'B17'[^\]]*\]/);
+  assert.match(levelData, /level: 16[\s\S]*benefitIds: \[[^\]]*'B18'[^\]]*\]/);
+  assert.match(levelData, /level: 17[\s\S]*benefitIds: \[[^\]]*'B19'[^\]]*\]/);
+  for (const [level, excluded] of [[14, ['B14']], [15, ['B14', 'B16']], [16, ['B14', 'B16', 'B17']], [17, ['B14', 'B16', 'B17', 'B18']]]) {
     const row = levelData.match(new RegExp(`level: ${level}[\\s\\S]*?benefitIds: \\[[^\\]]*\\]`))?.[0] || '';
     for (const benefitId of excluded) assert.equal(row.includes(`'${benefitId}'`), false, `LV${level}不应同时保留${benefitId}`);
   }
 });
 
-test('等级权益选择自动替换同组团队佣金', () => {
+test('等级权益选择自动替换同组团队收益', () => {
   const model = adminModel();
   const benefits = [
-    { id: 'B14', name: '团队佣金1%', category: '收益类' },
-    { id: 'B16', name: '团队佣金2%', category: '收益类' },
-    { id: 'B17', name: '团队佣金3%', category: '收益类' },
+    { id: 'B14', name: '团队收益1%', category: '收益类' },
+    { id: 'B16', name: '团队收益2%', category: '收益类' },
+    { id: 'B17', name: '团队收益3%', category: '收益类' },
   ];
   assert.deepEqual(JSON.parse(JSON.stringify(model.mergeBenefitSelection([], ['B14', 'B16', 'B17'], benefits))), ['B17']);
 });
 
-test('LV99继承LV15权益时排除团队佣金并追加区县佣金', () => {
+test('LV99继承LV17权益时排除团队收益并追加区县收益', () => {
   const model = adminModel();
   const result = model.resolveSpecialLevelBenefitIds(
-    [{ level: 15, benefitIds: ['B01', 'B14', 'B16', 'B17', 'B18', 'B19', 'O01'] }],
+    [{ level: 17, benefitIds: ['B01', 'B14', 'B16', 'B17', 'B18', 'B19', 'O01'] }],
     [
       { id: 'B01', name: '新人成交奖励' },
-      { id: 'B14', name: '团队佣金1%' },
-      { id: 'B16', name: '团队佣金2%' },
-      { id: 'B17', name: '团队佣金3%' },
-      { id: 'B18', name: '团队佣金4%' },
-      { id: 'B19', name: '团队佣金5%' },
+      { id: 'B14', name: '团队收益1%' },
+      { id: 'B16', name: '团队收益2%' },
+      { id: 'B17', name: '团队收益3%' },
+      { id: 'B18', name: '团队收益4%' },
+      { id: 'B19', name: '团队收益5%' },
       { id: 'O01', name: '0基础线上回收培训' },
-      { id: 'B20', name: '区县佣金' },
+      { id: 'B20', name: '区县收益' },
     ],
-    { sourceLevel: 15, includeBenefitId: 'B20', excludedNameKeywords: ['团队佣金'] },
+    { sourceLevel: 17, includeBenefitId: 'B20', excludedNameKeywords: ['团队收益'] },
   );
   assert.deepEqual(JSON.parse(JSON.stringify(result)), ['B01', 'O01', 'B20']);
 });
@@ -156,16 +159,37 @@ test('后台手动调级可以选择LV99并更新等级身份和人工维护进�
   const source = readFileSync(`${root}/app.js`, 'utf8');
   const action = sourceSection(source, 'function openAgentAction(action)', 'function openAppealDrawer');
   const save = sourceSection(source, "if (event.target.closest('[data-save-agent]'))", 'const saveAppeal =');
-  for (const marker of ['id="agent-target-level"', 'LV99 区县店主', '仅支持后台手动调整']) assert.ok(action.includes(marker));
+  for (const marker of ['id="agent-target-level"', 'LV99 区县合伙人', '仅支持后台手动调整']) assert.ok(action.includes(marker));
   for (const marker of ['agent.level = `LV${targetLevel.level}`', 'agent.identity = targetLevel.identity', '人工调整永久留痕', "targetLevel.special ? '人工维护' : agent.progress === '人工维护' ? '0%' : agent.progress"]) assert.ok(save.includes(marker));
 });
 
 test('后台模型支持权益基础信息维护并保护等级引用', () => {
   const model = adminModel();
-  const created = model.createBenefit([], { name: '区县佣金', category: '收益类', shortDescription: '短说明', detailDescription: '详细说明' });
+  const created = model.createBenefit([], { name: '区县收益', category: '收益类', shortDescription: '短说明', detailDescription: '详细说明' });
   assert.equal(created.ok, true);
   assert.equal(created.records[0].shortDescription, '短说明');
-  const updated = model.updateBenefit(created.records, created.records[0].id, { name: '区县佣金权益' });
-  assert.equal(updated.records[0].name, '区县佣金权益');
+  const updated = model.updateBenefit(created.records, created.records[0].id, { name: '区县收益权益' });
+  assert.equal(updated.records[0].name, '区县收益权益');
   assert.equal(model.deleteBenefit(updated.records, created.records[0].id, [created.records[0].id]).ok, false);
+});
+
+test('等级列表移除辅助说明且权益选择不展示互斥提示', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const page = sourceSection(source, 'function renderLevels()', 'function renderVersions()');
+  const drawer = sourceSection(source, 'function renderLevelDrawer()', 'function openLevelDrawer(');
+  const picker = sourceSection(source, 'function renderBenefitPicker()', 'function capFields');
+  for (const marker of ['店主等级', '特殊等级', '文档身份', '当前累计生效权益']) assert.equal(page.includes(marker), false);
+  for (const section of [drawer, picker]) assert.equal(section.includes('互斥'), false);
+  assert.equal(drawer.includes('身份选项已按飞书文档整合'), false);
+});
+
+test('图书50%收益在LV8保留并从LV9替换为70%两级收益', () => {
+  const source = readFileSync(`${root}/app.js`, 'utf8');
+  const levelData = sourceSection(source, 'const levels = [', 'let benefits = [');
+  const level8 = levelData.match(/level: 8[\s\S]*?benefitIds: \[[^\]]*\]/)?.[0] || '';
+  const level9 = levelData.match(/level: 9[\s\S]*?benefitIds: \[[^\]]*\]/)?.[0] || '';
+  assert.ok(level8.includes("'B21'"));
+  assert.equal(level8.includes("'B22'"), false);
+  assert.ok(level9.includes("'B22'"));
+  assert.equal(level9.includes("'B21'"), false);
 });
