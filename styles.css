@@ -129,7 +129,7 @@ button { color: inherit; cursor: pointer; }
 .table-row:last-child { border-bottom: 0; }
 .table-row.head { min-height: 42px; color: var(--muted); background: #f6f8f6; font-size: 9px; font-weight: 700; }
 .table-row:hover:not(.head) { background: #fbfcfa; }
-.level-table { grid-template-columns: .55fr .8fr 2.2fr .75fr .6fr .5fr; gap: 9px; }
+.level-table { grid-template-columns: .48fr .72fr 1.85fr .62fr .7fr .58fr .45fr; gap: 9px; }
 .benefit-table { grid-template-columns: 28px 1.05fr 1.2fr 1.65fr .8fr .55fr 1.65fr; gap: 9px; }
 .issuance-table { grid-template-columns: 1.2fr 1.15fr .75fr 1.35fr .65fr .65fr .8fr; gap: 9px; }
 .version-table { grid-template-columns: .7fr .7fr 1.55fr 1fr .8fr 1fr; }
